@@ -9,7 +9,7 @@ file_path = '/Users/co25936/Desktop/PER/IPEDS/GSS_IPEDS_Combined_file.xlsx'  # R
 data = pd.read_excel(file_path)
 
 # Define the range for x
-x = 0  # You can adjust this value as needed (SHOULD BE 0 and 1)
+x = 1  # You can adjust this value as needed (SHOULD BE 0 and 1)
 
 # List of UNITIDs to process
 unitid_list = [
@@ -36,9 +36,17 @@ for unitid in unitid_list:
         # Get the relevant rows for the current year and the range defined by x
         relevant_years = university_data[(university_data['Year'] >= year - x) & 
                                           (university_data['Year'] <= year + x)]
+        relevant_years_plus_6 = university_data[(university_data['Year'] >= year + 6 - x) & 
+                                          (university_data['Year'] <= year + 6 + x)]
+        
+        print("DENOMINATOR YEARS ARE:", relevant_years)  # PRINT STATMENT FOR CHECKING CORRECT VALUES
+        print("NUMERATOR YEARS ARE:", relevant_years_plus_6) # PRINT STATMENT FOR CHECKING CORRECT VALUES
+
+        #BEFOR 2009 and after 2016 the code dosent work
+
         
         # Calculate the numerator (P_n) and denominator (F_n)
-        numerator = relevant_years['CTOTALT'].sum()  # P_n using CTOTALT
+        numerator = relevant_years_plus_6['CTOTALT'].sum()  # P_n using CTOTALT
         denominator = relevant_years['ft_frst_tot_all_races_v'].sum()  # F_n
         
         # Avoid division by zero
@@ -49,14 +57,15 @@ for unitid in unitid_list:
             T_n = relevant_years['ft_tot_all_races_v'].sum()  # Replace with the actual column name for T_n
             T_n_plus_1 = university_data[university_data['Year'] == year + 1]['ft_tot_all_races_v'].sum()  # Replace with the actual column name for T_{n+1}
             F_n_plus_1 = university_data[university_data['Year'] == year + 1]['ft_frst_tot_all_races_v'].sum()  # F_{n+1}
-            
+            numerator_plus_1 = university_data[university_data['Year'] == year + 1]['CTOTALT'].sum() # CTOTAL FOR NEXT YEAR
+
             # Calculate R_n
             if T_n != 0:  # Avoid division by zero
-                retention_value = (T_n_plus_1 + numerator - F_n_plus_1) / T_n
+                retention_value = (T_n_plus_1 + numerator_plus_1 - F_n_plus_1) / T_n
             else:
                 retention_value = None  # or some default value
             
-            years_used = list(range(year, year + 7))  # Years used from selected year to year + 6
+            years_used = list(range(year - x, year, year + x))  # Years used from selected year to year + 6
             results.append({
                 'UNITID': unitid,
                 'Year': year,
@@ -96,6 +105,26 @@ plt.legend(title='University UNITID', bbox_to_anchor=(0, 1.2), loc='upper left')
 
 # Save the dot plot as a PNG file
 dot_plot_file_path = os.path.join(output_dir, 'pa_dot_plot.png')
+plt.savefig(dot_plot_file_path, bbox_inches='tight')  # Use bbox_inches='tight' to fit the plot
+plt.show()
+
+# Plotting the dot graph for each university Retention
+plt.figure(figsize=(10, 5))  # Adjusted figure size
+for unitid in results_df['UNITID'].unique():
+    university_results = results_df[results_df['UNITID'] == unitid]
+    plt.scatter(university_results['Year'], university_results['Retention_Value'], label=f'University {unitid}', alpha=0.7)
+
+plt.title('Dot Plot of Retention Values by University')
+plt.xlabel('Year')
+plt.ylabel('Retention')
+plt.xticks(range(2000, 2024))  # Set x-ticks for each year
+plt.grid()
+
+# Add the legend to the plot
+plt.legend(title='University UNITID', bbox_to_anchor=(0, 1.2), loc='upper left')  # Adjust the position as needed
+
+# Save the dot plot as a PNG file
+dot_plot_file_path = os.path.join(output_dir, 'Retention_dot_plot.png')
 plt.savefig(dot_plot_file_path, bbox_inches='tight')  # Use bbox_inches='tight' to fit the plot
 plt.show()
 

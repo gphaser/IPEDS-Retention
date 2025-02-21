@@ -16,6 +16,9 @@ for filename in os.listdir(directory):
         # Read the Excel file
         df = pd.read_excel(file_path)
         
+        # Change AWLEVEL from 9 to 17 this is to make pre 2008 doctoral degrees unified
+        df['AWLEVEL'] = df['AWLEVEL'].replace(9, 17)
+        
         # Append the DataFrame to the list
         dataframes.append(df)
 
