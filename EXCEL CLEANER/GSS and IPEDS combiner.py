@@ -25,6 +25,13 @@ print("Columns in df1:", df1.columns.tolist())  # Debugging line
 df2 = pd.read_excel(file_path_2, sheet_name='Sheet1')  # Change 'Sheet1' to your actual sheet name
 print("Columns in df2:", df2.columns.tolist())  # Debugging line
 
+# SORT THROUGH THE GSS add ft_tot_all_races_v+ft_tot_forgn_v+ ft_frst_tot_all_races_v if sum = 0 then replace values with NaN 
+# Calculate the sum of the specified columns
+sum_columns = df1[['ft_tot_all_races_v', 'ft_tot_forgn_v', 'ft_frst_tot_all_races_v']].sum(axis=1)
+
+# Replace values with NaN if the sum equals 0 (this leaves the cell emptpy)
+df1.loc[sum_columns == 0, ['ft_tot_all_races_v', 'ft_tot_forgn_v', 'ft_frst_tot_all_races_v']] = pd.NA
+
 # Merge the DataFrames on 'UNITID' and 'Year'
 combined_df = pd.merge(df1, df2, on=['UNITID', 'Year'], how='inner')  # Use 'inner' if you only want matching UNITIDs and Years
 

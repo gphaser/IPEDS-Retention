@@ -18,6 +18,8 @@ for year in range(2000, 2024):
         df_filtered = df_filtered[df_filtered["gss_code"] == 203]
 
         # Add a new column for the year
+
+        
         df_filtered['Year'] = year
 
 

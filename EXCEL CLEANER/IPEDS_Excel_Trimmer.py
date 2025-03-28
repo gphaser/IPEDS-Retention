@@ -4,7 +4,7 @@ import pandas as pd
 
 folder_path = "/Users/co25936/Desktop/PER/IPEDS/Excel Files IPEDS/"  # Ensure path is correctly formatted
 
-for year in range(2000, 2009):
+for year in range(2000, 2008):
     filename = f"{folder_path}c{year}_a.xlsx"  # Construct full file path
     
     if os.path.exists(filename):  # Check if file exists
