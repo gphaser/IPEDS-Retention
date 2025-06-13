@@ -22,7 +22,25 @@ unitid_list = [
 ]
 
 # Filter by AWLEVEL and UNITID
-filtered_df = df_trimmed[df_trimmed['AWLEVEL'] == 17][['UNITID', 'Year', 'AWLEVEL', 'ft_tot_all_races_v', 'ft_frst_tot_all_races_v', 'CTOTALT']]
+filtered_df = df_trimmed[df_trimmed['AWLEVEL'] == 17][[
+    'UNITID', 'Year', 'AWLEVEL',
+    'ft_tot_all_races_v', 'ft_frst_tot_all_races_v',
+    'CTOTALT', 'CTOTALM', 'CTOTALW',
+    'ma_ft_men_all_races_v', 'ma_ft_wmen_all_races_v', 'ma_ft_tot_all_races_v',
+    'dr_ft_men_all_races_v', 'dr_ft_wmen_all_races_v', 'dr_ft_tot_all_races_v',
+
+    #Gender Breakdown- First time enrollment 
+    'ft_frst_men_all_races_v', 'ft_frst_wmen_all_races_v',
+     # Racial/Ethnic breakdowns - Total Enrollment
+    "ft_tot_black_v", "ft_tot_indian_v", "ft_tot_asian_v", "ft_tot_pacific_v",
+    "ft_tot_white_v", "ft_tot_hisp_v", "ft_tot_multi_v", "ft_tot_unk_v", "ft_tot_forgn_v",
+    
+    # Racial/Ethnic breakdowns - First-Time Enrollment
+    "ft_frst_tot_black_v", "ft_frst_tot_indian_v", "ft_frst_tot_asian_v", "ft_frst_tot_pacific_v",
+    "ft_frst_tot_white_v", "ft_frst_tot_hisp_v", "ft_frst_tot_multi_v", "ft_frst_tot_unk_v", "ft_frst_tot_forgn_v"
+
+]]
+
 filtered_df = filtered_df[filtered_df['UNITID'].isin(unitid_list)]
 
 # Create a complete DataFrame with all missing years filled
@@ -65,10 +83,12 @@ for index, row in complete_df.iterrows():
     first_plus_1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['ft_frst_tot_all_races_v'].values)
 
     grad = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['CTOTALT'].values)
+    grad_plus_1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['CTOTALT'].values)
     grad_plus_5 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CTOTALT'].values)
     grad_plus_6 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CTOTALT'].values)
     grad_plus_7 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CTOTALT'].values)
 
+    
     # Calculate PA and Retention values safely
     denominator = first_minus_1 + first + first_plus_1
     if denominator and denominator != 0:
@@ -95,15 +115,27 @@ for index, row in complete_df.iterrows():
     complete_df.at[index, 'PA_value'] = PA_value
     complete_df.at[index, 'Retention'] = Retention
 
+
+''' TRYING TO GET 1/3 value calculation to work
+a = 0 
+while a <= 1: 
+    grad_ipeds =grad* (1-a) + grad_plus_1 * a
+    Retention = (total_plus_1 + grad_ipeds - first_plus_1) / retention_denominator
+    retention_avg = np.mean(Retention)
+    print(grad_ipeds)
+    print(f'Average Retention: {Retention:.6f}, a value: {a:.2f}')
+    a += .5
+'''
+
 # Save the final result
-output_path = '/Users/co25936/Desktop/PER/IPEDS/complete_with_offsets_and_PA.xlsx'
+output_path = '/Users/co25936/Desktop/PER/IPEDS/complete_with_offsets_and_PA_noIPEDS.xlsx'
 complete_df.to_excel(output_path, index=False)
 print(f'File saved at: {output_path}')
 
 # PLOTING 
 import matplotlib.pyplot as plt
 
-# 🔥 PA Value Plot
+# PA Value Plot
 fig, ax = plt.subplots(figsize=(14, 6))  # Increase figure size for more space
 
 # Plot individual UNITID data as dots
@@ -119,6 +151,7 @@ ax.plot(average_PA.index, average_PA.values, color='red', label='Average PA', li
 ax.set_xticks(range(2000, 2017))
 ax.set_xticklabels(range(2000, 2017), rotation=45)
 
+
 # Move the legend outside the plot and scale it down
 ax.legend(
     loc='center left', 
@@ -127,6 +160,7 @@ ax.legend(
     ncol=3,  # Multiple columns for compactness
     title='UNITIDs'
 )
+
 
 # Titles and labels
 ax.set_title('PA Value over Years')
@@ -156,6 +190,7 @@ ax.plot(average_retention.index, average_retention.values, color='blue', label='
 ax.set_xticks(range(2000, 2024))
 ax.set_xticklabels(range(2000, 2024), rotation=45)
 
+
 # Move the legend outside the plot and scale it down
 ax.legend(
     loc='center left', 
@@ -164,6 +199,7 @@ ax.legend(
     ncol=3,  # Multiple columns for compactness
     title='UNITIDs'
 )
+
 
 # Titles and labels
 ax.set_title('Retention over Years')
@@ -175,6 +211,111 @@ ax.grid(True)
 plt.tight_layout(rect=[0, 0, 0.85, 1])  # Add space on the right for the legend
 plt.savefig('/Users/co25936/Desktop/PER/IPEDS/Retention_Value.png')
 plt.show()
+
+
+
+
+# NEED GRPH FOR PA FOR M VS F
+# --- 1. PA VALUE MALE VS FEMALE ---
+
+# Create PA values for male and female based on CTOTALM and CTOTALW
+complete_df['PA_value_male'] = np.nan
+complete_df['PA_value_female'] = np.nan
+
+for index, row in complete_df.iterrows():
+    year = row['Year']
+    unitid = row['UNITID']
+
+    # Graduation by gender
+    grad_m_5 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CTOTALM'].values)
+    grad_m_6 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CTOTALM'].values)
+    grad_m_7 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CTOTALM'].values)
+
+    grad_f_5 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CTOTALW'].values)
+    grad_f_6 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CTOTALW'].values)
+    grad_f_7 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CTOTALW'].values)
+
+    # First-year full-time enrollment by gender
+    first_m1_m = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year - 1)]['ft_frst_men_all_races_v'].values)
+    first_m_m = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['ft_frst_men_all_races_v'].values)
+    first_p1_m = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['ft_frst_men_all_races_v'].values)
+
+    first_m1_f = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year - 1)]['ft_frst_wmen_all_races_v'].values)
+    first_m_f = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['ft_frst_wmen_all_races_v'].values)
+    first_p1_f = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['ft_frst_wmen_all_races_v'].values)
+
+    # Denominators
+    denom_m = first_m1_m + first_m_m + first_p1_m
+    denom_f = first_m1_f + first_m_f + first_p1_f
+
+    # PA Value calculation
+    if denom_m and denom_m != 0:
+        complete_df.at[index, 'PA_value_male'] = (grad_m_5 + grad_m_6 + grad_m_7) / denom_m
+
+    if denom_f and denom_f != 0:
+        complete_df.at[index, 'PA_value_female'] = (grad_f_5 + grad_f_6 + grad_f_7) / denom_f
+
+
+# --- PLOT: PA VALUE MALE VS FEMALE ---
+
+fig, ax = plt.subplots(figsize=(14, 6))
+
+# Plot averages
+avg_pa_male = complete_df.groupby('Year')['PA_value_male'].mean()
+avg_pa_female = complete_df.groupby('Year')['PA_value_female'].mean()
+
+ax.plot(avg_pa_male.index, avg_pa_male.values, label='Male PA Value', color='blue', linewidth=2)
+ax.plot(avg_pa_female.index, avg_pa_female.values, label='Female PA Value', color='purple', linewidth=2)
+
+ax.set_xticks(range(2000, 2024))
+ax.set_xticklabels(range(2000, 2024), rotation=45)
+
+ax.set_title("PA Value by Gender Over Time")
+ax.set_xlabel("Year")
+ax.set_ylabel("PA Value")
+ax.grid(True)
+ax.legend()
+
+plt.tight_layout()
+plt.savefig('/Users/co25936/Desktop/PER/IPEDS/PA_Value_Male_vs_Female.png')
+plt.show()
+
+# --- 2. MASTER'S VS DOCTORAL DEGREE BY GENDER (2017+) ---
+
+# Filter for 2017 and beyond
+grad_gender_df = df[(df['Year'] >= 2017)]
+
+# Group by year and sum across institutions
+grouped = grad_gender_df.groupby('Year').agg({
+    'ma_ft_men_all_races_v': 'sum',
+    'ma_ft_wmen_all_races_v': 'sum',
+    'dr_ft_men_all_races_v': 'sum',
+    'dr_ft_wmen_all_races_v': 'sum'
+}).reset_index()
+
+# --- PLOT: Master vs Doctor by Gender ---
+
+fig, ax = plt.subplots(figsize=(14, 6))
+
+ax.plot(grouped['Year'], grouped['ma_ft_men_all_races_v'], label='Masters Men', color='blue', marker='o')
+ax.plot(grouped['Year'], grouped['ma_ft_wmen_all_races_v'], label='Masters Women', color='purple', marker='o')
+ax.plot(grouped['Year'], grouped['dr_ft_men_all_races_v'], label='Doctoral Men', color='green', marker='x')
+ax.plot(grouped['Year'], grouped['dr_ft_wmen_all_races_v'], label='Doctoral Women', color='orange', marker='x')
+
+ax.set_title("Graduate Enrollment by Gender and Degree Level (2017+)")
+ax.set_xlabel("Year")
+ax.set_ylabel("Number of Students")
+ax.legend()
+ax.grid(True)
+
+plt.tight_layout()
+plt.savefig('/Users/co25936/Desktop/PER/IPEDS/Grad_Enrollment_By_Gender_And_Degree.png')
+plt.show()
+
+# WANT GRPG FOR PA FOR RACE AS WELL 
+
+
+
 
 
 
