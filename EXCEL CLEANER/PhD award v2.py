@@ -28,9 +28,11 @@ filtered_df = df_trimmed[df_trimmed['AWLEVEL'] == 17][[
     'CTOTALT', 'CTOTALM', 'CTOTALW',
     'ma_ft_men_all_races_v', 'ma_ft_wmen_all_races_v', 'ma_ft_tot_all_races_v',
     'dr_ft_men_all_races_v', 'dr_ft_wmen_all_races_v', 'dr_ft_tot_all_races_v',
+    'ma_ft_frst_tot_all_races_v', 'dr_ft_frst_tot_all_races_v', 
 
     #Gender Breakdown- First time enrollment 
     'ft_frst_men_all_races_v', 'ft_frst_wmen_all_races_v',
+     
      # Racial/Ethnic breakdowns - Total Enrollment
     "ft_tot_black_v", "ft_tot_indian_v", "ft_tot_asian_v", "ft_tot_pacific_v",
     "ft_tot_white_v", "ft_tot_hisp_v", "ft_tot_multi_v", "ft_tot_unk_v", "ft_tot_forgn_v",
@@ -215,7 +217,50 @@ plt.show()
 
 
 
-# NEED GRPH FOR PA FOR M VS F
+# NEED GRPH FOR PA FOR M VS F    CURRENT ISSUE CODE NOW NO LONGER WORKS HEP?!
+'''
+# --- 1. PA VALUE MALE VS FEMALE --- Newer version not broken graphs
+
+# Create PA values for male and female based on CTOTALM and CTOTALW
+complete_df['PA_value_male'] = np.nan
+complete_df['PA_value_female'] = np.nan
+
+for index, row in complete_df.iterrows():
+    year = row['Year']
+    unitid = row['UNITID']
+
+    # Graduation by gender
+    grad_m_5 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CTOTALM'].values)
+    grad_m_6 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CTOTALM'].values)
+    grad_m_7 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CTOTALM'].values)
+
+    grad_f_5 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CTOTALW'].values)
+    grad_f_6 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CTOTALW'].values)
+    grad_f_7 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CTOTALW'].values)
+
+    # First-year full-time enrollment by gender
+    first_m1_m = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year - 1)]['ft_frst_men_all_races_v'].values)
+    first_m_m  = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['ft_frst_men_all_races_v'].values)
+    first_p1_m = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['ft_frst_men_all_races_v'].values)
+
+    first_m1_f = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year - 1)]['ft_frst_wmen_all_races_v'].values)
+    first_m_f  = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['ft_frst_wmen_all_races_v'].values)
+    first_p1_f = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['ft_frst_wmen_all_races_v'].values)
+
+    # Sum and check with np.nansum
+    denom_m = np.nansum([first_m1_m, first_m_m, first_p1_m])
+    denom_f = np.nansum([first_m1_f, first_m_f, first_p1_f])
+    
+    grad_sum_m = np.nansum([grad_m_5, grad_m_6, grad_m_7])
+    grad_sum_f = np.nansum([grad_f_5, grad_f_6, grad_f_7])
+
+    if denom_m > 0:
+        complete_df.at[index, 'PA_value_male'] = grad_sum_m / denom_m
+
+    if denom_f > 0:
+        complete_df.at[index, 'PA_value_female'] = grad_sum_f / denom_f
+
+'''
 # --- 1. PA VALUE MALE VS FEMALE ---
 
 # Create PA values for male and female based on CTOTALM and CTOTALW
@@ -312,7 +357,7 @@ plt.tight_layout()
 plt.savefig('/Users/co25936/Desktop/PER/IPEDS/Grad_Enrollment_By_Gender_And_Degree.png')
 plt.show()
 
-# WANT GRPG FOR PA FOR RACE AS WELL 
+
 
 
 

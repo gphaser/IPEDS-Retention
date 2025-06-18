@@ -14,7 +14,7 @@ def filter_existing_columns(df, selected_columns, filename):
     return df[existing_columns] if existing_columns else pd.DataFrame()
 
 # --------- Pre-2008 ---------
-for year in range(2000, 2004):
+for year in range(2000, 2009):
     filename = f"{folder_path}c{year}_a.xlsx"
     
     if os.path.exists(filename):
@@ -53,7 +53,7 @@ for year in range(2000, 2004):
     else:
         print(f"File not found: {filename}, skipping.")
 
-'''
+
 # --------- 2009 and after ---------
 for year in range(2009, 2024):
     filename = f"{folder_path}c{year}_a.xlsx"
@@ -61,7 +61,7 @@ for year in range(2009, 2024):
     if os.path.exists(filename):
         df = pd.read_excel(filename)
 
-        selected_columns = ["UNITID", "CIPCODE", "CTOTALT", "AWLEVEL", "CTOTALM", "CTOTALW"
+        selected_columns = ["UNITID", "CIPCODE", "CTOTALT", "AWLEVEL", "CTOTALM", "CTOTALW",
                             # Racial breakdown, Black, Asian/Pacific islander, Hispanic, White, Unknown,
                             'CRACE18', 'CRACE20','CRACE21', 'CRACE22', 'CUNKNT',
                             # Other racial breakdowns Black, Aisan, Native Hawian/Pacific islander Hispanic/Latino., White (Unknown is the same)
@@ -90,7 +90,7 @@ for year in range(2009, 2024):
     else:
         print(f"File not found: {filename}, skipping.")
 
-'''
+
 
 
 '''
