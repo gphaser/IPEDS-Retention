@@ -26,8 +26,27 @@ for filename in os.listdir(directory):
             elif 'crace16' in df.columns:
                 df['CTOTALW'] = df['crace16']
 
-        # Optional: drop the redundant columns
-        df = df.drop(columns=[col for col in ['CRACE15', 'crace15', 'CRACE16', 'crace16'] if col in df.columns])
+        # --- Standardize and combine other race columns ---
+        # Create new columns and populate from either uppercase or lowercase versions
+        if 'CRACE17' in df.columns or 'crace17' in df.columns:
+            df['CRACE17_STD'] = df.get('CRACE17', df.get('crace17', pd.NA))
+        if 'CRACE18' in df.columns or 'crace18' in df.columns:
+            df['CRACE18_STD'] = df.get('CRACE18', df.get('crace18', pd.NA))
+        if 'CRACE19' in df.columns or 'crace19' in df.columns:
+            df['CRACE19_STD'] = df.get('CRACE19', df.get('crace19', pd.NA))
+        if 'CRACE20' in df.columns or 'crace20' in df.columns:
+            df['CRACE20_STD'] = df.get('CRACE20', df.get('crace20', pd.NA))
+        if 'CRACE21' in df.columns or 'crace21' in df.columns:
+            df['CRACE21_STD'] = df.get('CRACE21', df.get('crace21', pd.NA))
+        if 'CRACE22' in df.columns or 'crace22' in df.columns:
+            df['CRACE22_STD'] = df.get('CRACE22', df.get('crace22', pd.NA))
+
+        # Drop redundant original columns
+        columns_to_drop = ['CRACE15', 'crace15', 'CRACE16', 'crace16',
+                           'CRACE17', 'crace17', 'CRACE18', 'crace18',
+                           'CRACE19', 'crace19', 'CRACE20', 'crace20',
+                           'CRACE21', 'crace21', 'CRACE22', 'crace22']
+        df = df.drop(columns=[col for col in columns_to_drop if col in df.columns])
 
         # Standardize doctoral award level from 9 to 17 (pre-2008)
         df['AWLEVEL'] = df['AWLEVEL'].replace(9, 17)
@@ -45,44 +64,3 @@ combined_df = combined_df.sort_values(by='Year')
 combined_df.to_excel('/Users/co25936/Desktop/PER/IPEDS/Excel Files IPEDS/IPEDS_combined_file.xlsx', index=False)
 
 print("All files have been combined and saved as 'IPEDS_combined_file.xlsx'.")
-
-
-
-'''
-import pandas as pd
-import os
-
-# Define the directory containing the Excel files
-directory = "/Users/co25936/Desktop/PER/IPEDS/Excel Files IPEDS/Trimmed"  # Change this to your directory path
-
-# Create an empty list to hold DataFrames
-dataframes = []
-
-# Loop through all files in the directory
-for filename in os.listdir(directory):
-    if filename.endswith('.xlsx'):
-        # Construct the full file path
-        file_path = os.path.join(directory, filename)
-        
-        # Read the Excel file
-        df = pd.read_excel(file_path)
-        
-        # Change AWLEVEL from 9 to 17 this is to make pre 2008 doctoral degrees unified
-        df['AWLEVEL'] = df['AWLEVEL'].replace(9, 17)
-
-
-        
-        # Append the DataFrame to the list
-        dataframes.append(df)
-
-# Combine all DataFrames into one
-combined_df = pd.concat(dataframes, ignore_index=True)
-
-# Sort the combined DataFrame by the year column (assuming the year is in a column named 'Year')
-combined_df = combined_df.sort_values(by='Year')
-
-# Save the combined DataFrame to a new Excel file in the desired directory
-combined_df.to_excel('/Users/co25936/Desktop/PER/IPEDS/Excel Files IPEDS/IPEDS_combined_file.xlsx', index=False)
-
-print("All files have been combined and saved as 'IPEDS_combined_file.xlsx'.")
-'''

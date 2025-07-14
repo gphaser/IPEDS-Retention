@@ -36,12 +36,18 @@ filtered_df = df_trimmed[df_trimmed['AWLEVEL'] == 17][[
      # Racial/Ethnic breakdowns - Total Enrollment
     "ft_tot_black_v", "ft_tot_indian_v", "ft_tot_asian_v", "ft_tot_pacific_v",
     "ft_tot_white_v", "ft_tot_hisp_v", "ft_tot_multi_v", "ft_tot_unk_v", "ft_tot_forgn_v",
+
+    #Racial/Ethinc breakdwon - degrees earben
+        # Racial breakdown, Non-residental alien, Black,Native American/Alaskin, Asian/Pacific islander, Hispanic, White, Unknown,
+        'CRACE17_STD', 'CRACE18_STD','CRACE19_STD', 'CRACE20_STD','CRACE21_STD', 'CRACE22_STD', 'CUNKNT',
+        # Other racial breakdowns Black, Aisan, Native Hawian/Pacific islander Hispanic/Latino., White (Unknown is the same),  2 or more races, non-american students
+        'CBKAAT','CASIAT','CNHPIT', 'CHISPT', 'CWHITT', 'C2MORT', 'CNRALT', 
     
     # Racial/Ethnic breakdowns - First-Time Enrollment
     "ft_frst_tot_black_v", "ft_frst_tot_indian_v", "ft_frst_tot_asian_v", "ft_frst_tot_pacific_v",
-    "ft_frst_tot_white_v", "ft_frst_tot_hisp_v", "ft_frst_tot_multi_v", "ft_frst_tot_unk_v", "ft_frst_tot_forgn_v"
+    "ft_frst_tot_white_v", "ft_frst_tot_hisp_v", "ft_frst_tot_multi_v", "ft_frst_tot_unk_v", "ft_frst_tot_forgn_v"]
 
-]]
+]
 
 filtered_df = filtered_df[filtered_df['UNITID'].isin(unitid_list)]
 
@@ -67,9 +73,13 @@ for col in offset_columns:
     complete_df[col] = np.nan
 
 # Function to safely extract first value or return NaN
+
+# Older version
 def safe_extract(arr):
     """Safely extract the first value or return NaN if empty."""
     return arr[0] if len(arr) > 0 else np.nan
+
+
 
 # Calculate offset values with safe handling
 for index, row in complete_df.iterrows():
@@ -118,16 +128,6 @@ for index, row in complete_df.iterrows():
     complete_df.at[index, 'Retention'] = Retention
 
 
-''' TRYING TO GET 1/3 value calculation to work
-a = 0 
-while a <= 1: 
-    grad_ipeds =grad* (1-a) + grad_plus_1 * a
-    Retention = (total_plus_1 + grad_ipeds - first_plus_1) / retention_denominator
-    retention_avg = np.mean(Retention)
-    print(grad_ipeds)
-    print(f'Average Retention: {Retention:.6f}, a value: {a:.2f}')
-    a += .5
-'''
 
 # Save the final result
 output_path = '/Users/co25936/Desktop/PER/IPEDS/complete_with_offsets_and_PA_noIPEDS.xlsx'
@@ -217,50 +217,7 @@ plt.show()
 
 
 
-# NEED GRPH FOR PA FOR M VS F    CURRENT ISSUE CODE NOW NO LONGER WORKS HEP?!
-'''
-# --- 1. PA VALUE MALE VS FEMALE --- Newer version not broken graphs
 
-# Create PA values for male and female based on CTOTALM and CTOTALW
-complete_df['PA_value_male'] = np.nan
-complete_df['PA_value_female'] = np.nan
-
-for index, row in complete_df.iterrows():
-    year = row['Year']
-    unitid = row['UNITID']
-
-    # Graduation by gender
-    grad_m_5 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CTOTALM'].values)
-    grad_m_6 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CTOTALM'].values)
-    grad_m_7 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CTOTALM'].values)
-
-    grad_f_5 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CTOTALW'].values)
-    grad_f_6 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CTOTALW'].values)
-    grad_f_7 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CTOTALW'].values)
-
-    # First-year full-time enrollment by gender
-    first_m1_m = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year - 1)]['ft_frst_men_all_races_v'].values)
-    first_m_m  = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['ft_frst_men_all_races_v'].values)
-    first_p1_m = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['ft_frst_men_all_races_v'].values)
-
-    first_m1_f = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year - 1)]['ft_frst_wmen_all_races_v'].values)
-    first_m_f  = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['ft_frst_wmen_all_races_v'].values)
-    first_p1_f = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['ft_frst_wmen_all_races_v'].values)
-
-    # Sum and check with np.nansum
-    denom_m = np.nansum([first_m1_m, first_m_m, first_p1_m])
-    denom_f = np.nansum([first_m1_f, first_m_f, first_p1_f])
-    
-    grad_sum_m = np.nansum([grad_m_5, grad_m_6, grad_m_7])
-    grad_sum_f = np.nansum([grad_f_5, grad_f_6, grad_f_7])
-
-    if denom_m > 0:
-        complete_df.at[index, 'PA_value_male'] = grad_sum_m / denom_m
-
-    if denom_f > 0:
-        complete_df.at[index, 'PA_value_female'] = grad_sum_f / denom_f
-
-'''
 # --- 1. PA VALUE MALE VS FEMALE ---
 
 # Create PA values for male and female based on CTOTALM and CTOTALW
@@ -325,7 +282,69 @@ plt.tight_layout()
 plt.savefig('/Users/co25936/Desktop/PER/IPEDS/PA_Value_Male_vs_Female.png')
 plt.show()
 
-# --- 2. MASTER'S VS DOCTORAL DEGREE BY GENDER (2017+) ---
+
+
+# 2 PA plot using dr_ft_frst_tot_all_races_v and CTOTAL
+# --- PA VALUE using Doctoral First-Time Enrollment ---
+
+complete_df['PA_value_doctoral'] = np.nan
+
+for index, row in complete_df.iterrows():
+    year = row['Year']
+    unitid = row['UNITID']
+
+    # Doctoral first-time enrollment
+    dr_m1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year - 1)]['dr_ft_frst_tot_all_races_v'].values)
+    dr_0  = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['dr_ft_frst_tot_all_races_v'].values)
+    dr_p1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['dr_ft_frst_tot_all_races_v'].values)
+
+    # Graduation completions (total)
+    grad_5 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CTOTALT'].values)
+    grad_6 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CTOTALT'].values)
+    grad_7 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CTOTALT'].values)
+
+    dr_denom = np.nansum([dr_m1, dr_0, dr_p1])
+    grad_sum = np.nansum([grad_5, grad_6, grad_7])
+
+    if dr_denom > 0:
+        complete_df.at[index, 'PA_value_doctoral'] = grad_sum / dr_denom
+
+# --- PLOT: PA Value from Doctoral First-Time Enrollment ---
+
+fig, ax = plt.subplots(figsize=(14, 6))
+
+# Plot per UNITID
+for unitid in complete_df['UNITID'].unique():
+    subset = complete_df[complete_df['UNITID'] == unitid]
+    ax.scatter(subset['Year'], subset['PA_value_doctoral'], label=f'UNITID {unitid}', alpha=0.5, s=10)
+
+# Average line
+avg_pa_doctoral = complete_df.groupby('Year')['PA_value_doctoral'].mean()
+ax.plot(avg_pa_doctoral.index, avg_pa_doctoral.values, color='green', label='Average PA (Doctoral)', linewidth=2)
+
+# Axis and labels
+ax.set_xticks(range(2000, 2024))
+ax.set_xticklabels(range(2000, 2024), rotation=45)
+ax.set_title('PA Value using Doctoral First-Time Enrollment')
+ax.set_xlabel('Year')
+ax.set_ylabel('PA Value (Doctoral)')
+ax.grid(True)
+
+# Legend outside
+ax.legend(
+    loc='center left', 
+    bbox_to_anchor=(1.05, 0.5),
+    fontsize='small',
+    ncol=3,
+    title='UNITIDs'
+)
+
+plt.tight_layout(rect=[0, 0, 0.85, 1])
+plt.savefig('/Users/co25936/Desktop/PER/IPEDS/PA_Value_Doctoral.png')
+plt.show()
+
+
+# --- 3. MASTER'S VS DOCTORAL DEGREE BY GENDER (2017+) ---
 
 # Filter for 2017 and beyond
 grad_gender_df = df[(df['Year'] >= 2017)]
@@ -357,6 +376,414 @@ plt.tight_layout()
 plt.savefig('/Users/co25936/Desktop/PER/IPEDS/Grad_Enrollment_By_Gender_And_Degree.png')
 plt.show()
 
+
+# --- 4. PA VALUES FOR RACE ---
+# White vs Non-white (separated by graduation rates)
+
+# newer version that might work better (FIXES RACE PA VALUES BUT CHANGES PREVIOUS PA VALUES FOR GENDERg)
+def safe_extract(arr):
+    return arr[0] if len(arr) > 0 and not pd.isna(arr[0]) else 0
+
+complete_df['PA_value_white'] = np.nan
+complete_df['PA_value_nonwhite'] = np.nan
+
+for index, row in complete_df.iterrows():
+    year = row['Year']
+    unitid = row['UNITID']
+
+    # White first-time full-time enrollment (3-year window)
+    white_m1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year - 1)]['ft_frst_tot_white_v'].values)
+    white_0  = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['ft_frst_tot_white_v'].values)
+    white_p1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['ft_frst_tot_white_v'].values)
+
+    # Non-White first-time full-time = total - white
+    total_m1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year - 1)]['ft_frst_tot_all_races_v'].values)
+    total_0  = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['ft_frst_tot_all_races_v'].values)
+    total_p1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['ft_frst_tot_all_races_v'].values)
+
+    # Non-white first-time full-time students
+    nonwhite_m1 = total_m1 - white_m1 if pd.notna(total_m1) and pd.notna(white_m1) else np.nan
+    nonwhite_0  = total_0  - white_0  if pd.notna(total_0)  and pd.notna(white_0)  else np.nan
+    nonwhite_p1 = total_p1 - white_p1 if pd.notna(total_p1) and pd.notna(white_p1) else np.nan
+
+    # Graduation totals (separated by White and Non-White)
+    grad_5 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CTOTALT'].values)
+    grad_6 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CTOTALT'].values)
+    grad_7 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CTOTALT'].values)
+    grad_total = np.nansum([grad_5, grad_6, grad_7])
+
+    # Denominators (for White and Non-White)
+    denom_white = np.nansum([white_m1, white_0, white_p1])
+    denom_nonwhite = np.nansum([nonwhite_m1, nonwhite_0, nonwhite_p1])
+
+    # White graduation (using CWHITT + CRACE22_STD)
+    grad_white_5 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CWHITT'].values) + \
+                   safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CRACE22_STD'].values)
+    grad_white_6 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CWHITT'].values) + \
+                   safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CRACE22_STD'].values)
+    grad_white_7 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CWHITT'].values) + \
+                   safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CRACE22_STD'].values)
+
+    # Non-White graduation (using CTOTAL - White graduation)
+    grad_nonwhite_5 = grad_5 - grad_white_5
+    grad_nonwhite_6 = grad_6 - grad_white_6
+    grad_nonwhite_7 = grad_7 - grad_white_7
+
+    # Calculate PA Values for White and Non-White
+    if denom_white > 0:
+        complete_df.at[index, 'PA_value_white'] = np.nansum([grad_white_5, grad_white_6, grad_white_7]) / denom_white
+
+    if denom_nonwhite > 0:
+        complete_df.at[index, 'PA_value_nonwhite'] = np.nansum([grad_nonwhite_5, grad_nonwhite_6, grad_nonwhite_7]) / denom_nonwhite
+
+# --- PLOT: PA VALUE for White vs Non-White Students --- 
+# (CURENT ISSUE SOMETHING ABOUT THE MULITPART LINES IS CAUSING ISSUES see line 486 for example, know bc 2 or more race line works and is 1 line)
+fig, ax = plt.subplots(figsize=(14, 6))
+
+# Averages
+avg_pa_white = complete_df.groupby('Year')['PA_value_white'].mean()
+avg_pa_nonwhite = complete_df.groupby('Year')['PA_value_nonwhite'].mean()
+
+ax.plot(avg_pa_white.index, avg_pa_white.values, label='White PA Value', color='green', linewidth=2)
+ax.plot(avg_pa_nonwhite.index, avg_pa_nonwhite.values, label='Non-White PA Value', color='orange', linewidth=2)
+
+# Axis and labels
+ax.set_xticks(range(2000, 2024))
+ax.set_xticklabels(range(2000, 2024), rotation=45)
+ax.set_title("PA Value by Racial Group (White vs Non-White) Over Time")
+ax.set_xlabel("Year")
+ax.set_ylabel("PA Value")
+ax.grid(True)
+ax.legend()
+
+plt.tight_layout()
+plt.savefig('/Users/co25936/Desktop/PER/IPEDS/PA_Value_White_vs_NonWhite.png')
+plt.show()
+
+# --- PA VALUE for White + Asian vs Other Races ---
+complete_df['PA_value_white_asian'] = np.nan
+complete_df['PA_value_other_races'] = np.nan
+
+for index, row in complete_df.iterrows():
+    year = row['Year']
+    unitid = row['UNITID']
+
+    # White and Asian first-time full-time enrollment (3-year window)
+    white_asian_m1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year - 1)]['ft_frst_tot_white_v'].values) + \
+                     safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year - 1)]['ft_frst_tot_asian_v'].values)
+    white_asian_0  = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['ft_frst_tot_white_v'].values) + \
+                     safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['ft_frst_tot_asian_v'].values)
+    white_asian_p1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['ft_frst_tot_white_v'].values) + \
+                     safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['ft_frst_tot_asian_v'].values)
+
+    # Other races first-time full-time = total - white - asian
+    total_m1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year - 1)]['ft_frst_tot_all_races_v'].values)
+    total_0  = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['ft_frst_tot_all_races_v'].values)
+    total_p1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['ft_frst_tot_all_races_v'].values)
+
+    other_races_m1 = total_m1 - white_asian_m1 if pd.notna(total_m1) and pd.notna(white_asian_m1) else np.nan
+    other_races_0  = total_0  - white_asian_0  if pd.notna(total_0)  and pd.notna(white_asian_0)  else np.nan
+    other_races_p1 = total_p1 - white_asian_p1 if pd.notna(total_p1) and pd.notna(white_asian_p1) else np.nan
+
+    # Graduation totals (White + Asian and Other Races)
+    grad_5 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CTOTALT'].values)
+    grad_6 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CTOTALT'].values)
+    grad_7 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CTOTALT'].values)
+    grad_total = np.nansum([grad_5, grad_6, grad_7])
+
+    # White + Asian graduation (CWHITT + CRACE21_STD + CASIAT)
+    white_asian_grad_5 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CWHITT'].values) + \
+                         safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CRACE21_STD'].values)+ \
+                         safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CRACE22_STD'].values) + \
+                         safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CASIAT'].values)
+
+    white_asian_grad_6 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CWHITT'].values) + \
+                         safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CRACE21_STD'].values)+ \
+                         safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CRACE22_STD'].values) + \
+                         safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CASIAT'].values)
+
+    white_asian_grad_7 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CWHITT'].values) + \
+                         safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CRACE21_STD'].values)+ \
+                         safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CRACE22_STD'].values) + \
+                         safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CASIAT'].values)
+
+    # Other Races graduation = total - white_asian graduation
+    other_races_grad_5 = grad_5 - white_asian_grad_5
+    other_races_grad_6 = grad_6 - white_asian_grad_6
+    other_races_grad_7 = grad_7 - white_asian_grad_7
+
+    # Denominators (sum of first-time full-time enrollments)
+    denom_white_asian = np.nansum([white_asian_m1, white_asian_0, white_asian_p1])
+    denom_other_races = np.nansum([other_races_m1, other_races_0, other_races_p1])
+
+    # PA Values calculation
+    if denom_white_asian > 0:
+        complete_df.at[index, 'PA_value_white_asian'] = (white_asian_grad_5 + white_asian_grad_6 + white_asian_grad_7) / denom_white_asian
+
+    if denom_other_races > 0:
+        complete_df.at[index, 'PA_value_other_races'] = (other_races_grad_5 + other_races_grad_6 + other_races_grad_7) / denom_other_races
+
+# --- PLOT: PA VALUE for White + Asian vs Other Races ---
+fig, ax = plt.subplots(figsize=(14, 6))
+
+# Averages for White + Asian and Other Races PA Values
+avg_pa_white_asian = complete_df.groupby('Year')['PA_value_white_asian'].mean()
+avg_pa_other_races = complete_df.groupby('Year')['PA_value_other_races'].mean()
+
+# Plotting PA Values
+ax.plot(avg_pa_white_asian.index, avg_pa_white_asian.values, label='White + Asian PA Value', color='green', linewidth=2)
+ax.plot(avg_pa_other_races.index, avg_pa_other_races.values, label='Other Races PA Value', color='orange', linewidth=2)
+
+# Axis and labels
+ax.set_xticks(range(2000, 2024))
+ax.set_xticklabels(range(2000, 2024), rotation=45)
+ax.set_title("PA Value for White + Asian vs Other Races Over Time")
+ax.set_xlabel("Year")
+ax.set_ylabel("PA Value")
+ax.grid(True)
+ax.legend()
+
+plt.tight_layout()
+plt.savefig('/Users/co25936/Desktop/PER/IPEDS/PA_Value_White_Asian_vs_Other.png')
+plt.show()
+
+# --- PA VALUE for White, Asian, Non-Resident vs Other Races ---
+complete_df['PA_value_white_asian_non'] = np.nan
+complete_df['PA_value_other_groups'] = np.nan
+
+for index, row in complete_df.iterrows():
+    year = row['Year']
+    unitid = row['UNITID']
+
+    # Define White, Asian, Non-Resident groups
+    white_m1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year - 1)]['CWHITT'].values) + \
+               safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year - 1)]['CRACE22_STD'].values)
+    white_0  = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['CWHITT'].values) + \
+               safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['CRACE22_STD'].values)
+    white_p1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['CWHITT'].values) + \
+               safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['CRACE22_STD'].values)
+
+    asian_m1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year - 1)]['CRACE21_STD'].values) + \
+                safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year - 1)]['CASIAT'].values)
+    asian_0  = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['CRACE21_STD'].values) + \
+                safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['CASIAT'].values)
+    asian_p1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['CRACE21_STD'].values) + \
+                safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['CASIAT'].values)
+
+    non_resident_m1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year - 1)]['CRACE17_STD'].values) + \
+                       safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year - 1)]['CNRALT'].values)
+    non_resident_0  = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['CRACE17_STD'].values) + \
+                       safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['CNRALT'].values)
+    non_resident_p1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['CRACE17_STD'].values) + \
+                       safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['CNRALT'].values)
+    
+    #combine into one value
+    wan_m1 = white_m1 + asian_m1 + non_resident_m1
+    wan_0 = white_0 + asian_0 + non_resident_0
+    wan_p1 = white_p1 + asian_p1 + non_resident_p1
+
+    # Total first-time full-time enrollment (all races)
+    total_m1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year - 1)]['ft_frst_tot_all_races_v'].values)
+    total_0  = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['ft_frst_tot_all_races_v'].values)
+    total_p1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['ft_frst_tot_all_races_v'].values)
+
+    # Other Races = Total - (White + Asian + Non-Resident)
+    other_races_m1 = total_m1 - (white_m1 + asian_m1 + non_resident_m1) if pd.notna(total_m1) and pd.notna(white_m1) and pd.notna(asian_m1) and pd.notna(non_resident_m1) else np.nan
+    other_races_0  = total_0  - (white_0 + asian_0 + non_resident_0) if pd.notna(total_0) and pd.notna(white_0) and pd.notna(asian_0) and pd.notna(non_resident_0) else np.nan
+    other_races_p1 = total_p1 - (white_p1 + asian_p1 + non_resident_p1) if pd.notna(total_p1) and pd.notna(white_p1) and pd.notna(asian_p1) and pd.notna(non_resident_p1) else np.nan
+
+    # Graduation totals (White, Asian, Non-Resident, Other Races)
+    grad_5 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CTOTALT'].values)
+    grad_6 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CTOTALT'].values)
+    grad_7 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CTOTALT'].values)
+    grad_total = np.nansum([grad_5, grad_6, grad_7])
+
+    # Graduation for White, Asian, Non-Resident groups
+    white_grad_5 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CWHITT'].values) + \
+                   safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CRACE22_STD'].values)
+    white_grad_6 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CWHITT'].values) + \
+                   safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CRACE22_STD'].values)
+    white_grad_7 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CWHITT'].values) + \
+                   safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CRACE22_STD'].values)
+
+    asian_grad_5 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CRACE21_STD'].values) + \
+                    safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CASIAT'].values)
+    asian_grad_6 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CRACE21_STD'].values) + \
+                    safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CASIAT'].values)
+    asian_grad_7 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CRACE21_STD'].values) + \
+                    safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CASIAT'].values)
+
+    non_resident_grad_5 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CRACE17_STD'].values) + \
+                           safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CNRALT'].values)
+    non_resident_grad_6 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CRACE17_STD'].values) + \
+                           safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CNRALT'].values)
+    non_resident_grad_7 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CRACE17_STD'].values) + \
+                           safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CNRALT'].values)
+    
+    #combine into one grad
+    wan_grad_5 = white_grad_5 + asian_grad_5 + non_resident_grad_5
+    wan_grad_6 = white_grad_6 + asian_grad_6 + non_resident_grad_6
+    wan_grad_7 = white_grad_7 + asian_grad_7 + non_resident_grad_7
+
+    # Other Races graduation = total - white - asian - non-resident graduation
+    other_races_grad_5 = grad_5 - (white_grad_5 + asian_grad_5 + non_resident_grad_5)
+    other_races_grad_6 = grad_6 - (white_grad_6 + asian_grad_6 + non_resident_grad_6)
+    other_races_grad_7 = grad_7 - (white_grad_7 + asian_grad_7 + non_resident_grad_7)
+
+    # Denominators for each group (sum of first-time full-time enrollments)
+    denom_wan = np.nansum([wan_m1, wan_0, wan_p1])
+    denom_other = np.nansum([other_races_m1, other_races_0, other_races_p1])
+
+    # PA Values calculation
+    if denom_wan> 0:
+        complete_df.at[index, 'PA_value_white_asian_non-resident'] = (wan_grad_5 + wan_grad_6 + wan_grad_7) / denom_wan 
+
+    if denom_other > 0:
+        complete_df.at[index, 'PA_value_other_groups'] = (other_races_grad_5 + other_races_grad_6 + other_races_grad_7) / denom_other
+
+# --- PLOT: PA VALUE for White, Asian, Non-Resident vs Other Races ---
+fig, ax = plt.subplots(figsize=(14, 6))
+
+# Averages for each group
+avg_pa_wan = complete_df.groupby('Year')['PA_value_white_asian_non-resident'].mean()
+avg_pa_other_groups = complete_df.groupby('Year')['PA_value_other_groups'].mean()
+
+# Plotting PA Values
+ax.plot(avg_pa_wan.index, avg_pa_wan.values, label='White,Asian,Non-resident PA Value', color='blue', linewidth=2)
+ax.plot(avg_pa_other_groups.index, avg_pa_other_groups.values, label='Other Races PA Value', color='orange', linewidth=2)
+
+# Axis and labels
+ax.set_xticks(range(2000, 2024))
+ax.set_xticklabels(range(2000, 2024), rotation=45)
+ax.set_title("PA Value for White, Asian, Non-Resident vs Other Races Over Time")
+ax.set_xlabel("Year")
+ax.set_ylabel("PA Value")
+ax.grid(True)
+ax.legend()
+
+plt.tight_layout()
+plt.savefig('/Users/co25936/Desktop/PER/IPEDS/PA_Value_White_Asian_Non_Resident_vs_Other.png')
+plt.show()
+
+# --- PA VALUE for White, Asian, 2 or More Races, Non-Resident vs Other Races ---
+complete_df['PA_value_white_asian_non-resident_2orMore'] = np.nan
+complete_df['PA_value_other_groups'] = np.nan
+
+for index, row in complete_df.iterrows():
+    year = row['Year']
+    unitid = row['UNITID']
+
+    # Define White, Asian, 2 or More Races, Non-Resident groups
+    white_m1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year - 1)]['CWHITT'].values) + \
+               safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year - 1)]['CRACE22_STD'].values)
+    white_0  = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['CWHITT'].values) + \
+               safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['CRACE22_STD'].values)
+    white_p1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['CWHITT'].values) + \
+               safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['CRACE22_STD'].values)
+
+    asian_m1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year - 1)]['CRACE21_STD'].values) + \
+                safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year - 1)]['CASIAT'].values)
+    asian_0  = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['CRACE21_STD'].values) + \
+                safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['CASIAT'].values)
+    asian_p1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['CRACE21_STD'].values) + \
+                safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['CASIAT'].values)
+
+    two_or_more_races_m1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year - 1)]['C2MORT'].values)
+    two_or_more_races_0  = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['C2MORT'].values)
+    two_or_more_races_p1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['C2MORT'].values)
+
+    non_resident_m1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year - 1)]['CRACE17_STD'].values) + \
+                       safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year - 1)]['CNRALT'].values)
+    non_resident_0  = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['CRACE17_STD'].values) + \
+                       safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['CNRALT'].values)
+    non_resident_p1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['CRACE17_STD'].values) + \
+                       safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['CNRALT'].values)
+    
+    #combine into one value
+    wan2_m1 = white_m1 + asian_m1 + non_resident_m1 +two_or_more_races_m1
+    wan2_0 = white_0 + asian_0 + non_resident_0 + two_or_more_races_0
+    wan2_p1 = white_p1 + asian_p1 + non_resident_p1 + two_or_more_races_p1
+
+    # Total first-time full-time enrollment (all races)
+    total_m1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year - 1)]['ft_frst_tot_all_races_v'].values)
+    total_0  = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['ft_frst_tot_all_races_v'].values)
+    total_p1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['ft_frst_tot_all_races_v'].values)
+
+    # Other Races = Total - (White + Asian + 2 or More Races + Non-Resident)
+    other_races_m1 = total_m1 - (white_m1 + asian_m1 + two_or_more_races_m1 + non_resident_m1) if pd.notna(total_m1) else np.nan
+    other_races_0  = total_0  - (white_0 + asian_0 + two_or_more_races_0 + non_resident_0) if pd.notna(total_0) else np.nan
+    other_races_p1 = total_p1 - (white_p1 + asian_p1 + two_or_more_races_p1 + non_resident_p1) if pd.notna(total_p1) else np.nan
+
+
+    # Graduation for White, Asian, 2 or More Races, Non-Resident groups
+    white_grad_5 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CWHITT'].values) + \
+                   safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CRACE22_STD'].values)
+    white_grad_6 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CWHITT'].values) + \
+                   safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CRACE22_STD'].values)
+    white_grad_7 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CWHITT'].values) + \
+                   safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CRACE22_STD'].values)
+
+    asian_grad_5 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CRACE21_STD'].values) + \
+                    safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CASIAT'].values)
+    asian_grad_6 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CRACE21_STD'].values) + \
+                    safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CASIAT'].values)
+    asian_grad_7 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CRACE21_STD'].values) + \
+                    safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CASIAT'].values)
+    
+    non_resident_grad_5 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CRACE17_STD'].values) + \
+                           safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CNRALT'].values)
+    non_resident_grad_6 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CRACE17_STD'].values) + \
+                           safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CNRALT'].values)
+    non_resident_grad_7 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CRACE17_STD'].values) + \
+                           safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CNRALT'].values)
+    
+    two_or_more_races_grad_5 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['C2MORT'].values)
+    two_or_more_races_grad_6  = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['C2MORT'].values)
+    two_or_more_races_grad_7 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['C2MORT'].values)
+
+    #combine into one grad
+    wan2_grad_5 = white_grad_5 + asian_grad_5 + non_resident_grad_5 + two_or_more_races_grad_5
+    wan2_grad_6 = white_grad_6 + asian_grad_6 + non_resident_grad_6 + two_or_more_races_grad_6
+    wan2_grad_7 = white_grad_7 + asian_grad_7 + non_resident_grad_7 + two_or_more_races_grad_7
+    
+    # Other Races graduation = total - white - asian - non-resident graduation - 2 or more
+    other_races_grad_5 = grad_5 - (white_grad_5 + asian_grad_5 + non_resident_grad_5 + two_or_more_races_grad_5)
+    other_races_grad_6 = grad_6 - (white_grad_6 + asian_grad_6 + non_resident_grad_6 + two_or_more_races_grad_6)
+    other_races_grad_7 = grad_7 - (white_grad_7 + asian_grad_7 + non_resident_grad_7 + two_or_more_races_grad_7)
+
+    # Denominators for each group (sum of first-time full-time enrollments)
+    denom_wan2 = np.nansum([wan2_m1, wan2_0, wan2_p1])
+    denom_other = np.nansum([other_races_m1, other_races_0, other_races_p1,])
+    # Calculate PA Values for each group (e.g., White, Asian, etc.)
+    if denom_wan2 > 0:
+        complete_df.at[index, 'PA_value_white_asian_non-resident_2orMore'] = (wan2_grad_5 + wan2_grad_6 + wan2_grad_7) / denom_wan2
+    
+    if denom_other > 0:
+        complete_df.at[index, 'PA_value_other_groups'] = (other_races_grad_5 + other_races_grad_6 + other_races_grad_7) / denom_other
+
+# --- PLOT: PA VALUE for White, Asian, 2 or More Races, Non-Resident vs Other Races ---
+fig, ax = plt.subplots(figsize=(14, 6))
+
+# Averages for each group
+avg_pa_wan2 = complete_df.groupby('Year')['PA_value_white_asian_non-resident_2orMore'].mean()
+avg_pa_other_groups = complete_df.groupby('Year')['PA_value_other_groups'].mean()
+
+# Plotting PA Values
+ax.plot(avg_pa_wan2.index, avg_pa_wan2.values, label='White,Asian,2 or More races,Non-Resident PA Value', color='blue', linewidth=2)
+ax.plot(avg_pa_other_groups.index, avg_pa_other_groups.values, label='Other Races PA Value', color='orange', linewidth=2)
+
+# Axis and labels
+ax.set_xticks(range(2000, 2024))
+ax.set_xticklabels(range(2000, 2024), rotation=45)
+ax.set_title("PA Value for White, Asian, 2 or More Races, Non-Resident vs Other Races Over Time")
+ax.set_xlabel("Year")
+ax.set_ylabel("PA Value")
+ax.grid(True)
+ax.legend()
+
+plt.tight_layout()
+plt.savefig('/Users/co25936/Desktop/PER/IPEDS/PA_Value_White_Asian_2orMore_Non_Resident_vs_Other.png')
+plt.show()
 
 
 
