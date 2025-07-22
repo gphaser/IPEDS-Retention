@@ -15,7 +15,7 @@ unitid_list = [
     100663, 100751, 104151, 110404, 134130, 139658, 139755, 144005,
     145600, 147703, 151111, 152080, 243780, 153603, 153658, 172644,
     172699, 174066, 176080, 178411, 178396, 178420, 179867, 180461,
-    181464, 182670, 183044, 186380, 186867, 186867, 196468, 190415,
+    181464, 182670, 183044, 186380, 186867, 190044, 196468, 190415,
     194824, 196130, 196097, 199102, 199120, 199847, 200280, 201885,
     203517, 204857, 206084, 207388, 209542, 209551, 209807, 211273,
     211440, 213543, 214777, 215293, 227757, 230728, 232982, 233921,
@@ -67,7 +67,7 @@ complete_df['CTOTALT'] = complete_df['CTOTALT'].fillna(np.nan)
 # Add offset columns
 offset_columns = [
     'total', 'total_plus_1', 'first_minus_1', 'first', 'first_plus_1', 
-    'grad', 'grad_plus_5', 'grad_plus_6', 'grad_plus_7', 'PA_value', 'Retention'
+    'grad', 'grad_plus_5', 'grad_plus_6', 'grad_plus_7', 'PCR_value', 'Retention'
 ]
 
 for col in offset_columns:
@@ -102,12 +102,12 @@ for index, row in complete_df.iterrows():
     grad_plus_7 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CTOTALT'].values)
 
     
-    # Calculate PA and Retention values safely
+    # Calculate PCR and Retention values safely
     denominator = first_minus_1 + first + first_plus_1
     if denominator and denominator != 0:
-        PA_value = (grad_plus_5 + grad_plus_6 + grad_plus_7) / denominator
+        PCR_value = (grad_plus_5 + grad_plus_6 + grad_plus_7) / denominator
     else:
-        PA_value = np.nan
+        PCR_value = np.nan
 
     retention_denominator = total if total and total != 0 else np.nan
     if retention_denominator:
@@ -125,7 +125,7 @@ for index, row in complete_df.iterrows():
     complete_df.at[index, 'grad_plus_5'] = grad_plus_5
     complete_df.at[index, 'grad_plus_6'] = grad_plus_6
     complete_df.at[index, 'grad_plus_7'] = grad_plus_7
-    complete_df.at[index, 'PA_value'] = PA_value
+    complete_df.at[index, 'PCR_value'] = PCR_value
     complete_df.at[index, 'Retention'] = Retention
 
 
@@ -138,17 +138,18 @@ print(f'File saved at: {output_path}')
 # PLOTING 
 import matplotlib.pyplot as plt
 
-# PA Value Plot
+# PCR Value Plot
 fig, ax = plt.subplots(figsize=(14, 6))  # Increase figure size for more space
 
 # Plot individual UNITID data as dots
 for unitid in complete_df['UNITID'].unique():
     subset = complete_df[complete_df['UNITID'] == unitid]
-    ax.scatter(subset['Year'], subset['PA_value'], label=f'UNITID {unitid}', alpha=0.5, s=10)
+    ax.scatter(subset['Year'], subset['PCR_value'], label=f'UNITID {unitid}', alpha=0.5, s=10)
 
 # Plot average line
-average_PA = complete_df.groupby('Year')['PA_value'].mean()
-ax.plot(average_PA.index, average_PA.values, color='red', label='Average PA', linewidth=2)
+average_PCR = complete_df.groupby('Year')['PCR_value'].mean()
+ax.plot(average_PCR.index, average_PCR.values, color='red', label='Average PCR', linewidth=2)
+print(average_PCR)
 
 # X-axis ticks for every year
 ax.set_xticks(range(2000, 2017))
@@ -166,14 +167,14 @@ ax.legend(
 
 
 # Titles and labels
-ax.set_title('PA Value over Years')
+ax.set_title('PCR Value over Years')
 ax.set_xlabel('Year')
-ax.set_ylabel('PA Value')
+ax.set_ylabel('PCR Value')
 ax.grid(True)
 
 # Adjust layout to prevent overlapping
 plt.tight_layout(rect=[0, 0, 0.85, 1])  # Add space on the right for the legend
-plt.savefig('/Users/co25936/Desktop/PER/IPEDS/PA_Value.png')
+plt.savefig('/Users/co25936/Desktop/PER/IPEDS/PCR_Value.png')
 plt.show()
 
 
@@ -219,11 +220,11 @@ plt.show()
 
 
 
-# --- 1. PA VALUE MALE VS FEMALE ---
+# --- 1. PCR VALUE MALE VS FEMALE ---
 
-# Create PA values for male and female based on CTOTALM and CTOTALW
-complete_df['PA_value_male'] = np.nan
-complete_df['PA_value_female'] = np.nan
+# Create PCR values for male and female based on CTOTALM and CTOTALW
+complete_df['PCR_value_male'] = np.nan
+complete_df['PCR_value_female'] = np.nan
 
 for index, row in complete_df.iterrows():
     year = row['Year']
@@ -251,44 +252,50 @@ for index, row in complete_df.iterrows():
     denom_m = first_m1_m + first_m_m + first_p1_m
     denom_f = first_m1_f + first_m_f + first_p1_f
 
-    # PA Value calculation
+    # PCR Value calculation
     if denom_m and denom_m != 0:
-        complete_df.at[index, 'PA_value_male'] = (grad_m_5 + grad_m_6 + grad_m_7) / denom_m
+        complete_df.at[index, 'PCR_value_male'] = (grad_m_5 + grad_m_6 + grad_m_7) / denom_m
 
     if denom_f and denom_f != 0:
-        complete_df.at[index, 'PA_value_female'] = (grad_f_5 + grad_f_6 + grad_f_7) / denom_f
+        complete_df.at[index, 'PCR_value_female'] = (grad_f_5 + grad_f_6 + grad_f_7) / denom_f
 
 
-# --- PLOT: PA VALUE MALE VS FEMALE ---
+# --- PLOT: PCR VALUE MALE VS FEMALE ---
 
 fig, ax = plt.subplots(figsize=(14, 6))
 
+#years to plot
+years_to_plot = list(range(2001, 2017))
+
 # Plot averages
-avg_pa_male = complete_df.groupby('Year')['PA_value_male'].mean()
-avg_pa_female = complete_df.groupby('Year')['PA_value_female'].mean()
+avg_PCR_male = complete_df.groupby('Year')['PCR_value_male'].mean().loc[years_to_plot]
+avg_PCR_female = complete_df.groupby('Year')['PCR_value_female'].mean().loc[years_to_plot] 
+print("MALE PCR:", avg_PCR_male)
+print("FEMALE PCR:", avg_PCR_female)
 
-ax.plot(avg_pa_male.index, avg_pa_male.values, label='Male PA Value', color='blue', linewidth=2)
-ax.plot(avg_pa_female.index, avg_pa_female.values, label='Female PA Value', color='purple', linewidth=2)
 
-ax.set_xticks(range(2000, 2024))
-ax.set_xticklabels(range(2000, 2024), rotation=45)
+ax.plot(avg_PCR_male.index, avg_PCR_male.values, label='Male PCR Value', color='blue', linewidth=2)
+ax.plot(avg_PCR_female.index, avg_PCR_female.values, label='Female PCR Value', color='purple', linewidth=2)
 
-ax.set_title("PA Value by Gender Over Time")
+ax.set_xticks(range(2001, 2017))
+ax.set_xticklabels(range(2001, 2017), rotation=45)
+
+ax.set_title("PCR Value by Gender Over Time")
 ax.set_xlabel("Year")
-ax.set_ylabel("PA Value")
+ax.set_ylabel("PCR Value")
 ax.grid(True)
 ax.legend()
 
 plt.tight_layout()
-plt.savefig('/Users/co25936/Desktop/PER/IPEDS/PA_Value_Male_vs_Female.png')
+plt.savefig('/Users/co25936/Desktop/PER/IPEDS/PCR_Value_Male_vs_Female.png')
 plt.show()
 
 
 
-# 2 PA plot using dr_ft_frst_tot_all_races_v and CTOTAL
-# --- PA VALUE using Doctoral First-Time Enrollment ---
+# 2 PCR plot using dr_ft_frst_tot_all_races_v and CTOTAL
+# --- PCR VALUE using Doctoral First-Time Enrollment ---
 
-complete_df['PA_value_doctoral'] = np.nan
+complete_df['PCR_value_doctoral'] = np.nan
 
 for index, row in complete_df.iterrows():
     year = row['Year']
@@ -308,27 +315,27 @@ for index, row in complete_df.iterrows():
     grad_sum = np.nansum([grad_5, grad_6, grad_7])
 
     if dr_denom > 0:
-        complete_df.at[index, 'PA_value_doctoral'] = grad_sum / dr_denom
+        complete_df.at[index, 'PCR_value_doctoral'] = grad_sum / dr_denom
 
-# --- PLOT: PA Value from Doctoral First-Time Enrollment ---
+# --- PLOT: PCR Value from Doctoral First-Time Enrollment ---
 
 fig, ax = plt.subplots(figsize=(14, 6))
 
 # Plot per UNITID
 for unitid in complete_df['UNITID'].unique():
     subset = complete_df[complete_df['UNITID'] == unitid]
-    ax.scatter(subset['Year'], subset['PA_value_doctoral'], label=f'UNITID {unitid}', alpha=0.5, s=10)
+    ax.scatter(subset['Year'], subset['PCR_value_doctoral'], label=f'UNITID {unitid}', alpha=0.5, s=10)
 
 # Average line
-avg_pa_doctoral = complete_df.groupby('Year')['PA_value_doctoral'].mean()
-ax.plot(avg_pa_doctoral.index, avg_pa_doctoral.values, color='green', label='Average PA (Doctoral)', linewidth=2)
+avg_PCR_doctoral = complete_df.groupby('Year')['PCR_value_doctoral'].mean()
+ax.plot(avg_PCR_doctoral.index, avg_PCR_doctoral.values, color='green', label='Average PCR (Doctoral)', linewidth=2)
 
 # Axis and labels
 ax.set_xticks(range(2000, 2024))
 ax.set_xticklabels(range(2000, 2024), rotation=45)
-ax.set_title('PA Value using Doctoral First-Time Enrollment')
+ax.set_title('PCR using Doctoral First-Time Enrollment')
 ax.set_xlabel('Year')
-ax.set_ylabel('PA Value (Doctoral)')
+ax.set_ylabel('PCR Value (Doctoral)')
 ax.grid(True)
 
 # Legend outside
@@ -341,7 +348,7 @@ ax.legend(
 )
 
 plt.tight_layout(rect=[0, 0, 0.85, 1])
-plt.savefig('/Users/co25936/Desktop/PER/IPEDS/PA_Value_Doctoral.png')
+plt.savefig('/Users/co25936/Desktop/PER/IPEDS/PCR_Value_Doctoral.png')
 plt.show()
 
 
@@ -378,15 +385,15 @@ plt.savefig('/Users/co25936/Desktop/PER/IPEDS/Grad_Enrollment_By_Gender_And_Degr
 plt.show()
 
 
-# --- 4. PA VALUES FOR RACE ---
+# --- 4. PCR VALUES FOR RACE ---
 # White vs Non-white (separated by graduation rates)
 
-# newer version that might work better (FIXES RACE PA VALUES BUT CHANGES PREVIOUS PA VALUES FOR GENDERg)
+# newer version that might work better (FIXES RACE PCR VALUES BUT CHANGES PREVIOUS PCR VALUES FOR GENDERg)
 def safe_extract(arr):
     return arr[0] if len(arr) > 0 and not pd.isna(arr[0]) else 0
 
-complete_df['PA_value_white'] = np.nan
-complete_df['PA_value_nonwhite'] = np.nan
+complete_df['PCR_value_white'] = np.nan
+complete_df['PCR_value_nonwhite'] = np.nan
 
 for index, row in complete_df.iterrows():
     year = row['Year']
@@ -430,42 +437,46 @@ for index, row in complete_df.iterrows():
     grad_nonwhite_6 = grad_6 - grad_white_6
     grad_nonwhite_7 = grad_7 - grad_white_7
 
-    # Calculate PA Values for White and Non-White
+    # Calculate PCR Values for White and Non-White
     if denom_white > 0:
-        complete_df.at[index, 'PA_value_white'] = np.nansum([grad_white_5, grad_white_6, grad_white_7]) / denom_white
+        complete_df.at[index, 'PCR_value_white'] = np.nansum([grad_white_5, grad_white_6, grad_white_7]) / denom_white
 
     if denom_nonwhite > 0:
-        complete_df.at[index, 'PA_value_nonwhite'] = np.nansum([grad_nonwhite_5, grad_nonwhite_6, grad_nonwhite_7]) / denom_nonwhite
+        complete_df.at[index, 'PCR_value_nonwhite'] = np.nansum([grad_nonwhite_5, grad_nonwhite_6, grad_nonwhite_7]) / denom_nonwhite
 
-# --- PLOT: PA VALUE for White vs Non-White Students --- 
+# --- PLOT: PCR VALUE for White vs Non-White Students --- 
 # (CURENT ISSUE SOMETHING ABOUT THE MULITPART LINES IS CAUSING ISSUES see line 486 for example, know bc 2 or more race line works and is 1 line)
 fig, ax = plt.subplots(figsize=(14, 6))
 
 # Averages (for 2001 to 2016)
 years_to_plot = list(range(2001, 2017))
 
-avg_pa_white = complete_df.groupby('Year')['PA_value_white'].mean().loc[years_to_plot]
-avg_pa_nonwhite = complete_df.groupby('Year')['PA_value_nonwhite'].mean().loc[years_to_plot]
+avg_PCR_white = complete_df.groupby('Year')['PCR_value_white'].mean().loc[years_to_plot]
+avg_PCR_nonwhite = complete_df.groupby('Year')['PCR_value_nonwhite'].mean().loc[years_to_plot]
 
-ax.plot(avg_pa_white.index, avg_pa_white.values, label='White PA Value', color='green', linewidth=2)
-ax.plot(avg_pa_nonwhite.index, avg_pa_nonwhite.values, label='Non-White PA Value', color='orange', linewidth=2)
+print("white PCR", avg_PCR_white)
+
+ax.plot(avg_PCR_white.index, avg_PCR_white.values, label='White PCR Value', color='green', linewidth=2)
+ax.plot(avg_PCR_nonwhite.index, avg_PCR_nonwhite.values, label='Non-White PCR Value', color='orange', linewidth=2)
 
 # Axis and labels
 ax.set_xticks(years_to_plot)
 ax.set_xticklabels(years_to_plot, rotation=45)
-ax.set_title("PA Value by Racial Group (White vs Non-White) Over Time")
+ax.set_title("PCR Value by Racial Group (White vs Non-White) Over Time")
 ax.set_xlabel("Year")
-ax.set_ylabel("PA Value")
+ax.set_ylabel("PCR Value")
 ax.grid(True)
 ax.legend()
 
 plt.tight_layout()
-plt.savefig('/Users/co25936/Desktop/PER/IPEDS/PA_Value_White_vs_NonWhite.png')
+plt.savefig('/Users/co25936/Desktop/PER/IPEDS/PCR_Value_White_vs_NonWhite.png')
 plt.show()
 
-# --- PA VALUE for White + Asian vs Other Races ---
-complete_df['PA_value_white_asian'] = np.nan
-complete_df['PA_value_other_races'] = np.nan
+# --- PCR VALUE for White + Asian vs Other Races ---
+complete_df['PCR_value_white_asian'] = np.nan
+complete_df['PCR_value_white'] = np.nan
+complete_df['PCR_value_asian'] = np.nan
+complete_df['PCR_value_other_races'] = np.nan
 
 for index, row in complete_df.iterrows():
     year = row['Year']
@@ -478,6 +489,16 @@ for index, row in complete_df.iterrows():
                      safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['ft_frst_tot_asian_v'].values)
     white_asian_p1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['ft_frst_tot_white_v'].values) + \
                      safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['ft_frst_tot_asian_v'].values)
+    
+    # White first-time full-time enrollment (3-year window)
+    white_m1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year - 1)]['ft_frst_tot_white_v'].values)
+    white_0  = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['ft_frst_tot_white_v'].values)
+    white_p1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['ft_frst_tot_white_v'].values)
+
+    # Asian full time enrollment 
+    asian_m1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year - 1)]['ft_frst_tot_asian_v'].values)
+    asian_0  = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['ft_frst_tot_asian_v'].values)
+    asian_p1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['ft_frst_tot_asian_v'].values)
 
     # Other races first-time full-time = total - white - asian
     total_m1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year - 1)]['ft_frst_tot_all_races_v'].values)
@@ -509,6 +530,22 @@ for index, row in complete_df.iterrows():
                          safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CRACE21_STD'].values)+ \
                          safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CRACE22_STD'].values) + \
                          safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CASIAT'].values)
+    
+    # White graduation (using CWHITT + CRACE22_STD)
+    white_grad_5 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CWHITT'].values) + \
+                   safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CRACE22_STD'].values)
+    white_grad_6 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CWHITT'].values) + \
+                   safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CRACE22_STD'].values)
+    white_grad_7 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CWHITT'].values) + \
+                   safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CRACE22_STD'].values)
+    
+    #Asian graduation
+    asian_grad_5 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CASIAT'].values) + \
+                   safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CRACE21_STD'].values)
+    asian_grad_6 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CASIAT'].values) + \
+                   safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CRACE21_STD'].values)
+    asian_grad_7 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CASIAT'].values) + \
+                   safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CRACE21_STD'].values)
 
     # Other Races graduation = total - white_asian graduation
     other_races_grad_5 = grad_5 - white_asian_grad_5
@@ -517,44 +554,59 @@ for index, row in complete_df.iterrows():
 
     # Denominators (sum of first-time full-time enrollments)
     denom_white_asian = np.nansum([white_asian_m1, white_asian_0, white_asian_p1])
+    denom_white = np.nansum ([white_m1, white_0, white_p1])
+    denom_asian = np.nansum([asian_m1, asian_0, asian_p1])
     denom_other_races = np.nansum([other_races_m1, other_races_0, other_races_p1])
 
-    # PA Values calculation
+    # PCR Values calculation
     if denom_white_asian > 0:
-        complete_df.at[index, 'PA_value_white_asian'] = (white_asian_grad_5 + white_asian_grad_6 + white_asian_grad_7) / denom_white_asian
+        complete_df.at[index, 'PCR_value_white_asian'] = (white_asian_grad_5 + white_asian_grad_6 + white_asian_grad_7) / denom_white_asian
+
+    if denom_white > 0:
+        complete_df.at[index, 'PCR_value_white'] = (white_grad_5 + white_grad_6 + white_grad_7) / denom_white
+        
+    if denom_asian > 0:
+        complete_df.at[index, 'PCR_value_asian'] = (asian_grad_5 + asian_grad_6 + asian_grad_7) / denom_asian
 
     if denom_other_races > 0:
-        complete_df.at[index, 'PA_value_other_races'] = (other_races_grad_5 + other_races_grad_6 + other_races_grad_7) / denom_other_races
+        complete_df.at[index, 'PCR_value_other_races'] = (other_races_grad_5 + other_races_grad_6 + other_races_grad_7) / denom_other_races
 
-# --- PLOT: PA VALUE for White + Asian vs Other Races ---
+# --- PLOT: PCR VALUE for White + Asian vs Other Races ---
 fig, ax = plt.subplots(figsize=(14, 6))
 
-# Averages for White + Asian and Other Races PA Values (filtered to 2001–2016)
+# Averages for White + Asian and Other Races PCR Values (filtered to 2001–2016)
 years_to_plot = list(range(2001, 2017))
 
-avg_pa_white_asian = complete_df.groupby('Year')['PA_value_white_asian'].mean().loc[years_to_plot]
-avg_pa_other_races = complete_df.groupby('Year')['PA_value_other_races'].mean().loc[years_to_plot]
+avg_PCR_white_asian = complete_df.groupby('Year')['PCR_value_white_asian'].mean().loc[years_to_plot]
+avg_PCR_other_races = complete_df.groupby('Year')['PCR_value_other_races'].mean().loc[years_to_plot]
+avg_PCR_white = complete_df.groupby('Year')['PCR_value_white'].mean().loc[years_to_plot]
+avg_PCR_asian = complete_df.groupby('Year')['PCR_value_asian'].mean().loc[years_to_plot]
 
-# Plotting PA Values
-ax.plot(avg_pa_white_asian.index, avg_pa_white_asian.values, label='White + Asian PA Value', color='green', linewidth=2)
-ax.plot(avg_pa_other_races.index, avg_pa_other_races.values, label='Other Races PA Value', color='orange', linewidth=2)
+print("white_asain PCR", avg_PCR_white_asian)
+
+# Plotting PCR Values
+#  Line commented out combines Asian and White into a singular line
+# ax.plot(avg_PCR_white_asian.index, avg_PCR_white_asian.values, label='White + Asian PCR Value', color='green', linewidth=2)
+ax.plot(avg_PCR_white.index, avg_PCR_white.values, label='White PCR Value', color='green', linewidth=2)
+ax.plot(avg_PCR_asian.index, avg_PCR_asian.values, label='Asian PCR Value', color='blue', linewidth=2)
+ax.plot(avg_PCR_other_races.index, avg_PCR_other_races.values, label='Other Races PCR Value', color='orange', linewidth=2)
 
 # Axis and labels
 ax.set_xticks(years_to_plot)
 ax.set_xticklabels(years_to_plot, rotation=45)
-ax.set_title("PA Value for White + Asian vs Other Races Over Time")
+ax.set_title("PCR Value for White + Asian vs Other Races Over Time")
 ax.set_xlabel("Year")
-ax.set_ylabel("PA Value")
+ax.set_ylabel("PCR Value")
 ax.grid(True)
 ax.legend()
 
 plt.tight_layout()
-plt.savefig('/Users/co25936/Desktop/PER/IPEDS/PA_Value_White_Asian_vs_Other.png')
+plt.savefig('/Users/co25936/Desktop/PER/IPEDS/PCR_Value_White_Asian_vs_Other.png')
 plt.show()
 
-# --- PA VALUE for White, Asian, Non-Resident vs Other Races ---
-complete_df['PA_value_white_asian_non'] = np.nan
-complete_df['PA_value_other_groups'] = np.nan
+# --- PCR VALUE for White, Asian, Non-Resident vs Other Races ---
+complete_df['PCR_value_white_asian_non'] = np.nan
+complete_df['PCR_value_other_groups'] = np.nan
 
 for index, row in complete_df.iterrows():
     year = row['Year']
@@ -627,42 +679,44 @@ for index, row in complete_df.iterrows():
     denom_wan = np.nansum([wan_m1, wan_0, wan_p1])
     denom_other = np.nansum([other_races_m1, other_races_0, other_races_p1])
 
-    # PA Values calculation
+    # PCR Values calculation
     if denom_wan> 0:
-        complete_df.at[index, 'PA_value_white_asian_non'] = (wan_grad_5 + wan_grad_6 + wan_grad_7) / denom_wan 
+        complete_df.at[index, 'PCR_value_white_asian_non'] = (wan_grad_5 + wan_grad_6 + wan_grad_7) / denom_wan 
 
     if denom_other > 0:
-        complete_df.at[index, 'PA_value_other_groups'] = (other_races_grad_5 + other_races_grad_6 + other_races_grad_7) / denom_other
+        complete_df.at[index, 'PCR_value_other_groups'] = (other_races_grad_5 + other_races_grad_6 + other_races_grad_7) / denom_other
 
-# --- PLOT: PA VALUE for White, Asian, Non-Resident vs Other Races ---
+# --- PLOT: PCR VALUE for White, Asian, Non-Resident vs Other Races ---
 fig, ax = plt.subplots(figsize=(14, 6))
 
 # Averages for each group (filtered to 2001–2016)
 years_to_plot = list(range(2001, 2017))
 
-avg_pa_wan = complete_df.groupby('Year')['PA_value_white_asian_non'].mean().loc[years_to_plot]
-avg_pa_other_groups = complete_df.groupby('Year')['PA_value_other_groups'].mean().loc[years_to_plot]
+avg_PCR_wan = complete_df.groupby('Year')['PCR_value_white_asian_non'].mean().loc[years_to_plot]
+avg_PCR_other_groups = complete_df.groupby('Year')['PCR_value_other_groups'].mean().loc[years_to_plot]
 
-# Plotting PA Values
-ax.plot(avg_pa_wan.index, avg_pa_wan.values, label='White,Asian,Non-resident PA Value', color='blue', linewidth=2)
-ax.plot(avg_pa_other_groups.index, avg_pa_other_groups.values, label='Other Races PA Value', color='orange', linewidth=2)
+print("Whte asain non-resident PCR", avg_PCR_wan)
+
+# Plotting PCR Values
+ax.plot(avg_PCR_wan.index, avg_PCR_wan.values, label='White,Asian,Non-resident PCR Value', color='blue', linewidth=2)
+ax.plot(avg_PCR_other_groups.index, avg_PCR_other_groups.values, label='Other Races PCR Value', color='orange', linewidth=2)
 
 # Axis and labels
 ax.set_xticks(years_to_plot)
 ax.set_xticklabels(years_to_plot, rotation=45)
-ax.set_title("PA Value for White, Asian, Non-Resident vs Other Races Over Time")
+ax.set_title("PCR Value for White, Asian, Non-Resident vs Other Races Over Time")
 ax.set_xlabel("Year")
-ax.set_ylabel("PA Value")
+ax.set_ylabel("PCR Value")
 ax.grid(True)
 ax.legend()
 
 plt.tight_layout()
-plt.savefig('/Users/co25936/Desktop/PER/IPEDS/PA_Value_White_Asian_Non_Resident_vs_Other.png')
+plt.savefig('/Users/co25936/Desktop/PER/IPEDS/PCR_Value_White_Asian_Non_Resident_vs_Other.png')
 plt.show()
 
-# --- PA VALUE for White, Asian, 2 or More Races, Non-Resident vs Other Races ---
-complete_df['PA_value_white_asian_non-resident_2orMore'] = np.nan
-complete_df['PA_value_other_groups'] = np.nan
+# --- PCR VALUE for White, Asian, 2 or More Races, Non-Resident vs Other Races ---
+complete_df['PCR_value_white_asian_non-resident_2orMore'] = np.nan
+complete_df['PCR_value_other_groups'] = np.nan
 
 for index, row in complete_df.iterrows():
     year = row['Year']
@@ -741,37 +795,39 @@ for index, row in complete_df.iterrows():
     # Denominators for each group (sum of first-time full-time enrollments)
     denom_wan2 = np.nansum([wan2_m1, wan2_0, wan2_p1])
     denom_other = np.nansum([other_races_m1, other_races_0, other_races_p1,])
-    # Calculate PA Values for each group (e.g., White, Asian, etc.)
+    # Calculate PCR Values for each group (e.g., White, Asian, etc.)
     if denom_wan2 > 0:
-        complete_df.at[index, 'PA_value_white_asian_non-resident_2orMore'] = (wan2_grad_5 + wan2_grad_6 + wan2_grad_7) / denom_wan2
+        complete_df.at[index, 'PCR_value_white_asian_non-resident_2orMore'] = (wan2_grad_5 + wan2_grad_6 + wan2_grad_7) / denom_wan2
     
     if denom_other > 0:
-        complete_df.at[index, 'PA_value_other_groups'] = (other_races_grad_5 + other_races_grad_6 + other_races_grad_7) / denom_other
+        complete_df.at[index, 'PCR_value_other_groups'] = (other_races_grad_5 + other_races_grad_6 + other_races_grad_7) / denom_other
 
-# --- PLOT: PA VALUE for White, Asian, 2 or More Races, Non-Resident vs Other Races ---
+# --- PLOT: PCR VALUE for White, Asian, 2 or More Races, Non-Resident vs Other Races ---
 fig, ax = plt.subplots(figsize=(14, 6))
 
 # Averages for each group (filtered to 2001–2016)
 years_to_plot = list(range(2001, 2017))
 
-avg_pa_wan2 = complete_df.groupby('Year')['PA_value_white_asian_non-resident_2orMore'].mean().loc[years_to_plot]
-avg_pa_other_groups = complete_df.groupby('Year')['PA_value_other_groups'].mean().loc[years_to_plot]
+avg_PCR_wan2 = complete_df.groupby('Year')['PCR_value_white_asian_non-resident_2orMore'].mean().loc[years_to_plot]
+avg_PCR_other_groups = complete_df.groupby('Year')['PCR_value_other_groups'].mean().loc[years_to_plot]
 
-# Plotting PA Values
-ax.plot(avg_pa_wan2.index, avg_pa_wan2.values, label='White,Asian,2 or More races,Non-Resident PA Value', color='blue', linewidth=2)
-ax.plot(avg_pa_other_groups.index, avg_pa_other_groups.values, label='Other Races PA Value', color='orange', linewidth=2)
+print("white asian non-res 2 or more PCR", avg_PCR_wan2)
+
+# Plotting PCR Values
+ax.plot(avg_PCR_wan2.index, avg_PCR_wan2.values, label='White,Asian,2 or More races,Non-Resident PCR Value', color='blue', linewidth=2)
+ax.plot(avg_PCR_other_groups.index, avg_PCR_other_groups.values, label='Other Races PCR Value', color='orange', linewidth=2)
 
 # Axis and labels
 ax.set_xticks(years_to_plot)
 ax.set_xticklabels(years_to_plot, rotation=45)
-ax.set_title("PA Value for White, Asian, 2 or More Races, Non-Resident vs Other Races Over Time")
+ax.set_title("PCR Value for White, Asian, 2 or More Races, Non-Resident vs Other Races Over Time")
 ax.set_xlabel("Year")
-ax.set_ylabel("PA Value")
+ax.set_ylabel("PCR Value")
 ax.grid(True)
 ax.legend()
 
 plt.tight_layout()
-plt.savefig('/Users/co25936/Desktop/PER/IPEDS/PA_Value_White_Asian_2orMore_Non_Resident_vs_Other.png')
+plt.savefig('/Users/co25936/Desktop/PER/IPEDS/PCR_Value_White_Asian_2orMore_Non_Resident_vs_Other.png')
 plt.show()
 
 
