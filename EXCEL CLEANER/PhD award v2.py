@@ -12,14 +12,15 @@ df_trimmed = df.dropna(subset=['ft_tot_all_races_v'])
 
 # Filter by AWLEVEL = 17 and specified UNITIDs
 unitid_list = [
-    100663, 100751, 104151, 110404, 134130, 139658, 139755, 144005,
+    100663, 100751, 104151, 110404, 
+    134130,139658, 139755, 144005,
     145600, 147703, 151111, 152080, 243780, 153603, 153658, 172644,
     172699, 174066, 176080, 178411, 178396, 178420, 179867, 180461,
     181464, 182670, 183044, 186380, 186867, 190044, 196468, 190415,
     194824, 196130, 196097, 199102, 199120, 199847, 200280, 201885,
     203517, 204857, 206084, 207388, 209542, 209551, 209807, 211273,
     211440, 213543, 214777, 215293, 227757, 230728, 232982, 233921,
-    234076, 231624, 236948, 240444#
+    234076, 231624, 236948, 240444
 ]
 
 # Filter by AWLEVEL and UNITID
@@ -49,6 +50,30 @@ filtered_df = df_trimmed[df_trimmed['AWLEVEL'] == 17][[
     "ft_frst_tot_white_v", "ft_frst_tot_hisp_v", "ft_frst_tot_multi_v", "ft_frst_tot_unk_v", "ft_frst_tot_forgn_v"]
 
 ]
+
+# TO ADD Bootstrap error bars
+from scipy.stats import bootstrap
+
+def bootstrap_ci(data, n_bootstrap=1000, ci=0.95):
+    """Bootstrap the mean and return lower and upper bounds of the confidence interval."""
+    data = data.dropna().values
+    if len(data) < 2:
+        return (np.nan, np.nan, np.nan)
+    res = bootstrap((data,), np.mean, confidence_level=ci, n_resamples=n_bootstrap, method='basic')
+    return (np.mean(data), res.confidence_interval.low, res.confidence_interval.high)
+
+def get_bootstrap_stats(df, value_column):
+    years = sorted(df['Year'].dropna().unique())
+    stats = []
+
+    for year in years:
+        values = df[df['Year'] == year][value_column]
+        mean, lower, upper = bootstrap_ci(values)
+        stats.append({'Year': year, 'Mean': mean, 'Lower': lower, 'Upper': upper})
+
+    return pd.DataFrame(stats)
+
+
 
 filtered_df = filtered_df[filtered_df['UNITID'].isin(unitid_list)]
 
@@ -141,10 +166,49 @@ import matplotlib.pyplot as plt
 # PCR Value Plot
 fig, ax = plt.subplots(figsize=(14, 6))  # Increase figure size for more space
 
+#BOOTSTRAPING 
+pcr_stats = get_bootstrap_stats(complete_df, 'PCR_value')
+
+fig, ax = plt.subplots(figsize=(14, 6))
+
 # Plot individual UNITID data as dots
 for unitid in complete_df['UNITID'].unique():
     subset = complete_df[complete_df['UNITID'] == unitid]
-    ax.scatter(subset['Year'], subset['PCR_value'], label=f'UNITID {unitid}', alpha=0.5, s=10)
+    ax.scatter(subset['Year'], subset['PCR_value'], label=f'UNITID {unitid}', alpha=0.5, s=20)
+
+# Plot mean PCR
+ax.plot(pcr_stats['Year'], pcr_stats['Mean'], color='red', label='Average PCR', linewidth=2)
+
+# Plot shaded 95% confidence interval
+ax.fill_between(
+    pcr_stats['Year'],
+    pcr_stats['Lower'],
+    pcr_stats['Upper'],
+    color='red',
+    alpha=0.3,
+    label='95% CI'
+)
+
+ax.set_xticks(range(2000, 2017))
+ax.set_xticklabels(range(2000, 2017), rotation=45)
+ax.set_title("PCR Value with 95% Confidence Interval", fontsize=18)
+ax.set_xlabel("Year", fontsize=18)
+ax.set_ylabel("PCR Value", fontsize=18)
+ax.grid(True)
+plt.tight_layout()
+plt.savefig('/Users/co25936/Desktop/PER/IPEDS/PCR_Value_Bootstrap_CI.png')
+plt.show()
+
+
+# Plot individual UNITID data as dots
+for unitid in complete_df['UNITID'].unique():
+    subset = complete_df[complete_df['UNITID'] == unitid]
+    ax.scatter(subset['Year'], subset['PCR_value'], label=f'UNITID {unitid}', alpha=0.5, s=20)
+'''
+# Plot individual UNITID data as dots
+for unitid in complete_df['UNITID'].unique():
+    subset = complete_df[complete_df['UNITID'] == unitid]
+    ax.scatter(subset['Year'], subset['PCR_value'], label=f'UNITID {unitid}', alpha=0.5, s=20)
 
 # Plot average line
 average_PCR = complete_df.groupby('Year')['PCR_value'].mean()
@@ -156,6 +220,7 @@ ax.set_xticks(range(2000, 2017))
 ax.set_xticklabels(range(2000, 2017), rotation=45)
 
 '''
+'''
 # Move the legend outside the plot and scale it down
 ax.legend(
     loc='center left', 
@@ -165,11 +230,13 @@ ax.legend(
     title='UNITIDs'
 )
 '''
+'''
 
 # Titles and labels
-ax.set_title('PCR Value over Years')
-ax.set_xlabel('Year')
-ax.set_ylabel('PCR Value')
+ax.set_title("PCR Value by UNITID with Yearly Average", fontsize=18)
+ax.set_xlabel("Year", fontsize=18)
+ax.set_ylabel("PCR Value", fontsize=18)
+ax.tick_params(axis='y', labelsize=12)
 ax.grid(True)
 
 # Adjust layout to prevent overlapping
@@ -177,7 +244,7 @@ ax.grid(True)
 plt.tight_layout()
 plt.savefig('/Users/co25936/Desktop/PER/IPEDS/PCR_Value.png')
 plt.show()
-
+'''
 
 # Retention Plot
 fig, ax = plt.subplots(figsize=(14, 6))  # Increase figure size for more space
@@ -207,9 +274,9 @@ ax.legend(
 
 
 # Titles and labels
-ax.set_title('Retention over Years')
-ax.set_xlabel('Year')
-ax.set_ylabel('Retention')
+ax.set_title('Retention over Years', fontsize=18)
+ax.set_xlabel('Year', fontsize=18)
+ax.set_ylabel('Retention', fontsize=18)
 ax.grid(True)
 
 # Adjust layout to prevent overlapping
@@ -269,22 +336,62 @@ fig, ax = plt.subplots(figsize=(14, 6))
 #years to plot
 years_to_plot = list(range(2001, 2017))
 
+# BOOTSTRAPING
+men_stats= get_bootstrap_stats(complete_df, 'PCR_value_male')
+women_stats=get_bootstrap_stats(complete_df, 'PCR_value_female')
+
 # Plot averages
 avg_PCR_male = complete_df.groupby('Year')['PCR_value_male'].mean().loc[years_to_plot]
 avg_PCR_female = complete_df.groupby('Year')['PCR_value_female'].mean().loc[years_to_plot] 
 print("MALE PCR:", avg_PCR_male)
 print("FEMALE PCR:", avg_PCR_female)
 
+'''
+# BOOTSTRAPED GRAPH
+ax.plot(men_stats['Year'], men_stats['Mean'], color='blue', label='PCR Value for Men', linewidth=2)
+ax.plot(women_stats['Year'], women_stats['Mean'], color='green', label='PCR Value for Women', linewidth=2)
 
-ax.plot(avg_PCR_male.index, avg_PCR_male.values, label='Male PCR Value', color='blue', linewidth=2)
-ax.plot(avg_PCR_female.index, avg_PCR_female.values, label='Female PCR Value', color='purple', linewidth=2)
+
+# Plot shaded 95% confidence interval MEN
+ax.fill_between(
+    men_stats['Year'],
+    men_stats['Lower'],
+    men_stats['Upper'],
+    color='blue',
+    alpha=0.3,
+)
+# Plot shaded 95% confidence interval WOMEN
+ax.fill_between(
+    women_stats['Year'],
+    women_stats['Lower'],
+    women_stats['Upper'],
+    color='green',
+    alpha=0.3,
+)
+
+
+ax.set_xticks(range(2001, 2017))
+ax.set_xticklabels(range(2001, 2017), rotation=45)
+ax.set_title("PCR Value by Sex Over Time with 95% Confidence Interval", fontsize=18)
+ax.set_xlabel("Year", fontsize=18)
+ax.set_ylabel("PCR Value", fontsize=18)
+ax.grid(True)
+ax.legend()
+plt.tight_layout()
+plt.savefig('/Users/co25936/Desktop/PER/IPEDS/PCR_Value_Male_vs_Female_Bootstrap.png')
+plt.show()
+'''
+
+ # NON-BOOTSTRAP GRAPH
+ax.plot(avg_PCR_male.index, avg_PCR_male.values, label='PCR Value for Men', color='blue', linewidth=2)
+ax.plot(avg_PCR_female.index, avg_PCR_female.values, label='PCR Value for Women', color='green', linewidth=2)
 
 ax.set_xticks(range(2001, 2017))
 ax.set_xticklabels(range(2001, 2017), rotation=45)
 
-ax.set_title("PCR Value by Sex Over Time")
-ax.set_xlabel("Year")
-ax.set_ylabel("PCR Value")
+ax.set_title("PCR Value by Sex Over Time", fontsize=18)
+ax.set_xlabel("Year", fontsize=18)
+ax.set_ylabel("PCR Value", fontsize=18)
 ax.grid(True)
 ax.legend()
 
@@ -335,9 +442,9 @@ ax.plot(avg_PCR_doctoral.index, avg_PCR_doctoral.values, color='green', label='A
 # Axis and labels
 ax.set_xticks(range(2000, 2024))
 ax.set_xticklabels(range(2000, 2024), rotation=45)
-ax.set_title('PCR using Doctoral First-Time Enrollment')
-ax.set_xlabel('Year')
-ax.set_ylabel('PCR Value (Doctoral)')
+ax.set_title('PCR using Doctoral First-Time Enrollment', fontsize=18)
+ax.set_xlabel('Year', fontsize=18)
+ax.set_ylabel('PCR Value (Doctoral)', fontsize=18)
 ax.grid(True)
 
 # Legend outside
@@ -376,9 +483,9 @@ ax.plot(grouped['Year'], grouped['ma_ft_wmen_all_races_v'], label='Masters Women
 ax.plot(grouped['Year'], grouped['dr_ft_men_all_races_v'], label='Doctoral Men', color='green', marker='x')
 ax.plot(grouped['Year'], grouped['dr_ft_wmen_all_races_v'], label='Doctoral Women', color='orange', marker='x')
 
-ax.set_title("Graduate Enrollment by Sex and Degree Level (2017+)")
-ax.set_xlabel("Year")
-ax.set_ylabel("Number of Students")
+ax.set_title("Graduate Enrollment by Sex and Degree Level (2017+)", fontsize=18)
+ax.set_xlabel("Year", fontsize=18)
+ax.set_ylabel("Number of Students", fontsize=18)
 ax.legend()
 ax.grid(True)
 
@@ -462,11 +569,11 @@ ax.plot(avg_PCR_white.index, avg_PCR_white.values, label='White PCR Value', colo
 ax.plot(avg_PCR_nonwhite.index, avg_PCR_nonwhite.values, label='Non-White PCR Value', color='orange', linewidth=2)
 
 # Axis and labels
-ax.set_xticks(years_to_plot)
-ax.set_xticklabels(years_to_plot, rotation=45)
-ax.set_title("PCR Value by Racial Group (White vs Non-White) Over Time")
-ax.set_xlabel("Year")
-ax.set_ylabel("PCR Value")
+ax.set_xticks(range(2001, 2017))
+ax.set_xticklabels(range(2001, 2017), rotation=45)
+ax.set_title("PCR Value by Racial Group (White vs Non-White) Over Time", fontsize=18)
+ax.set_xlabel("Year", fontsize=18)
+ax.set_ylabel("PCR Value", fontsize=18)
 ax.grid(True)
 ax.legend()
 
@@ -596,9 +703,9 @@ ax.plot(avg_PCR_other_races.index, avg_PCR_other_races.values, label='Other Race
 # Axis and labels
 ax.set_xticks(years_to_plot)
 ax.set_xticklabels(years_to_plot, rotation=45)
-ax.set_title("PCR Value for White + Asian vs Other Races Over Time")
-ax.set_xlabel("Year")
-ax.set_ylabel("PCR Value")
+ax.set_title("PCR Value for White + Asian vs Other Races Over Time", fontsize=18)
+ax.set_xlabel("Year", fontsize=18)
+ax.set_ylabel("PCR Value", fontsize=18)
 ax.grid(True)
 ax.legend()
 
@@ -717,7 +824,65 @@ for index, row in complete_df.iterrows():
 # --- PLOT: PCR VALUE for White + Asian vs Other Races ---
 fig, ax = plt.subplots(figsize=(14, 6))
 
-# Averages for White + Asian and Other Races PCR Values (filtered to 2001–2016)
+'''
+# BOOTSTRAPING
+white_stats= get_bootstrap_stats(complete_df, 'PCR_value_white')
+asian_stats=get_bootstrap_stats(complete_df, 'PCR_value_asian')
+other_stats=get_bootstrap_stats(complete_df, 'PCR_value_other_races')
+
+# Plot averages
+avg_PCR_white = complete_df.groupby('Year')['PCR_value_white'].mean().loc[years_to_plot].loc[years_to_plot]
+avg_PCR_asian = complete_df.groupby('Year')['PCR_value_asian'].mean().loc[years_to_plot].loc[years_to_plot]
+ave_PCR_other = complete_df.groupby('Year')['PCR_value_other_races'].mean().loc[years_to_plot].loc[years_to_plot]
+print("white PCR:", avg_PCR_white)
+print("asian PCR:", avg_PCR_asian)
+print("Other Domestic PCR:", ave_PCR_other)
+
+
+ax.plot(white_stats['Year'], white_stats['Mean'], color='blue', label='PCR Value for White', linewidth=2)
+ax.plot(asian_stats['Year'], asian_stats['Mean'], color='green', label='PCR Value for Asian', linewidth=2)
+ax.plot(other_stats['Year'], other_stats['Mean'], color='orange', label='PCR Value for Domestic Black, Hispanic, Native American, Native Hawaiian/ Pacific Islander, or Multiracial Students Over Time', linewidth=2)
+
+# Plot shaded 95% confidence interval White
+ax.fill_between(
+    white_stats['Year'],
+    white_stats['Lower'],
+    white_stats['Upper'],
+    color='blue',
+    alpha=0.3,
+)
+# Plot shaded 95% confidence interval Asian
+ax.fill_between(
+    asian_stats['Year'],
+    asian_stats['Lower'],
+    asian_stats['Upper'],
+    color='green',
+    alpha=0.3,
+)
+# Plot shaded 95% confidence interval Other Domestic racial groups
+ax.fill_between(
+    other_stats['Year'],
+    other_stats['Lower'],
+    other_stats['Upper'],
+    color='orange',
+    alpha=0.3,
+)
+
+#Axis and labels
+ax.set_xticks(range(2001, 2017))
+ax.set_xticklabels(range(2001, 2017), rotation=45)
+ax.set_title("PCR Value for White + Asian vs Domestic Black, Hispanic, Native American, Native Hawaiian/ Pacific Islander, or Multiracial Over Time", fontsize=14)
+ax.set_xlabel("Year", fontsize=18)
+ax.set_ylabel("PCR Value", fontsize=18)
+ax.grid(True)
+ax.legend()
+
+plt.tight_layout()
+plt.savefig('/Users/co25936/Desktop/PER/IPEDS/PCR_Value_White_Asian_vs_Domestic_Black_Hispanic_Native American_Native Hawaiian_Pacific_Islander_or_multiracial_PCR_Value_bootstrap.png')
+plt.show()
+'''
+
+# Averages for White + Asian and Other Races PCR Values (filtered to 2001–2016) NON BOOTSTRAP
 years_to_plot = list(range(2001, 2017))
 
 avg_PCR_white_asian = complete_df.groupby('Year')['PCR_value_white_asian'].mean().loc[years_to_plot]
@@ -737,9 +902,9 @@ ax.plot(avg_PCR_other_races.index, avg_PCR_other_races.values, label='Domestic B
 # Axis and labels
 ax.set_xticks(years_to_plot)
 ax.set_xticklabels(years_to_plot, rotation=45)
-ax.set_title("PCR Value for White + Asian vs Domestic Black, Hispanic, Native American, Native Hawaiian/ Pacific Islander, or Multiracial Over Time")
-ax.set_xlabel("Year")
-ax.set_ylabel("PCR Value")
+ax.set_title("PCR Value for White + Asian vs Domestic Black, Hispanic, Native American, Native Hawaiian/ Pacific Islander, or Multiracial Over Time", fontsize=14)
+ax.set_xlabel("Year", fontsize=18)
+ax.set_ylabel("PCR Value", fontsize=18)
 ax.grid(True)
 ax.legend()
 
@@ -848,9 +1013,9 @@ ax.plot(avg_PCR_other_groups.index, avg_PCR_other_groups.values, label='Other Ra
 # Axis and labels
 ax.set_xticks(years_to_plot)
 ax.set_xticklabels(years_to_plot, rotation=45)
-ax.set_title("PCR Value for White, Asian, Non-Resident vs Other Races Over Time")
-ax.set_xlabel("Year")
-ax.set_ylabel("PCR Value")
+ax.set_title("PCR Value for White, Asian, Non-Resident vs Other Races Over Time", fontsize=18)
+ax.set_xlabel("Year", fontsize=18)
+ax.set_ylabel("PCR Value", fontsize=18)
 ax.grid(True)
 ax.legend()
 
@@ -964,9 +1129,9 @@ ax.plot(avg_PCR_other_groups.index, avg_PCR_other_groups.values, label='Other Ra
 # Axis and labels
 ax.set_xticks(years_to_plot)
 ax.set_xticklabels(years_to_plot, rotation=45)
-ax.set_title("PCR Value for White, Asian, 2 or More Races, Non-Resident vs Other Races Over Time")
-ax.set_xlabel("Year")
-ax.set_ylabel("PCR Value")
+ax.set_title("PCR Value for White, Asian, 2 or More Races, Non-Resident vs Other Races Over Time", fontsize=18)
+ax.set_xlabel("Year", fontsize=18)
+ax.set_ylabel("PCR Value", fontsize=18)
 ax.grid(True)
 ax.legend()
 
