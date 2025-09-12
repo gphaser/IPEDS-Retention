@@ -40,7 +40,7 @@ for year in range(2000, 2009):
 
             df_filtered = df_filtered[
                 (df_filtered["CIPCODE"] == 40.0801) &
-                (df_filtered["AWLEVEL"].isin([7, 9, 11]))
+                (df_filtered["AWLEVEL"].isin([7, 9, 11, 17]))
             ]
 
             df_filtered["Year"] = year
@@ -77,7 +77,7 @@ for year in range(2009, 2024):
 
             df_filtered = df_filtered[
                 (df_filtered["CIPCODE"] == 40.0801) &
-                (df_filtered["AWLEVEL"].isin([7, 17]))
+                (df_filtered["AWLEVEL"].isin([7,9,17]))
             ]
 
             df_filtered["Year"] = year

@@ -48,7 +48,7 @@ for filename in os.listdir(directory):
                            'CRACE21', 'crace21', 'CRACE22', 'crace22']
         df = df.drop(columns=[col for col in columns_to_drop if col in df.columns])
 
-        # Standardize doctoral award level from 9 to 17 (pre-2008)
+        # Standardize doctoral award level from 9 to 17 (pre-2010)
         df['AWLEVEL'] = df['AWLEVEL'].replace(9, 17)
 
         # Append to list
@@ -64,3 +64,10 @@ combined_df = combined_df.sort_values(by='Year')
 combined_df.to_excel('/Users/co25936/Desktop/PER/IPEDS/Excel Files IPEDS/IPEDS_combined_file.xlsx', index=False)
 
 print("All files have been combined and saved as 'IPEDS_combined_file.xlsx'.")
+
+# --- Create trimmed version with only AWLEVEL = 17 ---
+trimmed_df = combined_df[combined_df["AWLEVEL"] == 17].copy()
+
+trimmed_path = "/Users/co25936/Desktop/PER/IPEDS/Excel Files IPEDS/IPEDS_combined_file_trimmed_AWLEVEL17.xlsx"
+trimmed_df.to_excel(trimmed_path, index=False)
+print(f"Trimmed file (AWLEVEL=17 only) saved as: {trimmed_path}")

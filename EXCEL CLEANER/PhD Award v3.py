@@ -41,30 +41,8 @@ filtered_df = df_trimmed[df_trimmed['AWLEVEL'] == 17][[
     "ft_frst_tot_white_v", "ft_frst_tot_hisp_v", "ft_frst_tot_multi_v", "ft_frst_tot_unk_v", "ft_frst_tot_forgn_v"]
 
 ]
-
-# TO ADD Bootstrap error bars
-from scipy.stats import bootstrap
-
-def bootstrap_ci(data, n_bootstrap=1000, ci=0.95):
-    """Bootstrap the mean and return lower and upper bounds of the confidence interval."""
-    data = data.dropna().values
-    if len(data) < 2:
-        return (np.nan, np.nan, np.nan)
-    res = bootstrap((data,), np.mean, confidence_level=ci, n_resamples=n_bootstrap, method='basic')
-    return (np.mean(data), res.confidence_interval.low, res.confidence_interval.high)
-
-def get_bootstrap_stats(df, value_column):
-    years = sorted(df['Year'].dropna().unique())
-    stats = []
-
-    for year in years:
-        values = df[df['Year'] == year][value_column]
-        mean, lower, upper = bootstrap_ci(values)
-        stats.append({'Year': year, 'Mean': mean, 'Lower': lower, 'Upper': upper})
-
-    return pd.DataFrame(stats)
-
-
+# If a school has >1 row in a year, sum numeric columns
+filtered_df = filtered_df.groupby(["UNITID", "Year"], as_index=False).sum(numeric_only=True)
 
 # Instead of unitid_list, pull all unique UNITIDs from the dataset
 all_unitids = filtered_df['UNITID'].unique()
@@ -102,6 +80,13 @@ def safe_extract(arr):
     return arr[0] if len(arr) > 0 else np.nan
 
 
+# Example: write complete_df to Excel
+output_path = "/Users/co25936/Desktop/PER/IPEDS/complete_output.xlsx"
+
+# index=False prevents pandas from writing the row numbers as an extra column
+complete_df.to_excel(output_path, index=False)
+
+print(f"File saved at: {output_path}")
 
 # Calculate offset values with safe handling
 for index, row in complete_df.iterrows():
@@ -117,12 +102,14 @@ for index, row in complete_df.iterrows():
     first_plus_1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['ft_frst_tot_all_races_v'].values)
 
     grad = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['CTOTALT'].values)
+
     grad_plus_1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['CTOTALT'].values)
     grad_plus_5 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CTOTALT'].values)
     grad_plus_6 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CTOTALT'].values)
     grad_plus_7 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CTOTALT'].values)
 
-    
+
+
     # Calculate PCR and Retention values safely
     denominator = first_minus_1 + first + first_plus_1
     if denominator and denominator != 0:
@@ -174,6 +161,56 @@ yearly_totals["PCR_value_total"] = (
     (yearly_totals["first_minus_1"] + yearly_totals["first"] + yearly_totals["first_plus_1"])
 )
 
+# Count unique UNITIDs per year
+unitid_counts = complete_df.groupby("Year")["UNITID"].nunique().reset_index()
+unitid_counts.columns = ["Year", "Unique_UNITIDs"]
+
+print("\nNumber of unique UNITIDs per year:")
+print(unitid_counts)
+
+# Correct way: use the raw column, not the offset one
+true_enrollment_and_grads = filtered_df.groupby("Year").agg({
+    "ft_frst_tot_all_races_v": "sum",   # first-year enrollments
+    "CTOTALT": "sum"                    # PhD grads
+}).reset_index()
+
+print("\nTRUE Number of first years per year (direct from IPEDS):")
+print(true_enrollment_and_grads[["Year", "ft_frst_tot_all_races_v"]])
+
+print("\nTRUE Number of male first years per year (direct from IPEDS):")
+print(filtered_df[["Year", "ft_frst_men_all_races_v"]])
+
+print("\nTRUE Number of female first years per year (direct from IPEDS):")
+print(filtered_df[["Year", "ft_frst_wmen_all_races_v"]])
+
+print("\nTRUE Number of PhD grads per year (direct from IPEDS):")
+print(true_enrollment_and_grads[["Year", "CTOTALT"]])
+
+print("\nTRUE Number of male grads per year (direct from IPEDS):")
+print(filtered_df[["Year", "CTOTALM"]])
+
+print("\nTRUE Number of female grads per year (direct from IPEDS):")
+print(filtered_df[["Year", "CTOTALW"]])
+
+
+# TO CHECK IF MALE + FEMALE = TOTAL
+
+
+
+''' OLD WAY
+# Aggregate first-years and PhD grads across UNITIDs per year
+enrollment_and_grads = complete_df.groupby("Year").agg({
+    "first": "sum",   # first-year enrollments
+    "grad": "sum"     # PhD grads (CTOTALT)
+}).reset_index()
+
+print("\nNumber of first years per year:")
+print(enrollment_and_grads[["Year", "first"]])
+
+print("\nNumber of PhD grads per year:")
+print(enrollment_and_grads[["Year", "grad"]])
+'''
+
 # --- Plotting only 2001–2016 ---
 fig, ax = plt.subplots(figsize=(14, 6))
 
@@ -191,6 +228,7 @@ ax.plot(yearly_subset["Year"], yearly_subset["PCR_value_total"],
         color="red", linewidth=2, label="Total PCR (summed across UNITIDs)")
 
 print(yearly_totals["PCR_value_total"])
+
 
 # Set ticks only for 2001–2016
 ax.set_xticks(range(2001, 2017))
@@ -384,6 +422,28 @@ yearly_totals["PCR_value_total"] = (
     (yearly_totals["grad_plus_5"] + yearly_totals["grad_plus_6"] + yearly_totals["grad_plus_7"]) /
     (yearly_totals["first_minus_1"] + yearly_totals["first"] + yearly_totals["first_plus_1"])
 )
+
+# Count unique UNITIDs per year
+unitid_counts = complete_df.groupby("Year")["UNITID"].nunique().reset_index()
+unitid_counts.columns = ["Year", "Unique_UNITIDs"]
+
+print("\nNumber of unique UNITIDs per year:")
+print(unitid_counts)
+
+# Aggregate first-years and PhD grads across UNITIDs per year
+enrollment_and_grads = complete_df.groupby("Year").agg({
+    "first": "sum",   # first-year enrollments
+    "grad": "sum"     # PhD grads (CTOTALT)
+}).reset_index()
+
+print("\nNumber of first years per year:")
+print(enrollment_and_grads[["Year", "first"]])
+
+print("\nNumber of PhD grads per year:")
+print(enrollment_and_grads[["Year", "grad"]])
+
+
+
 
 # --- Plotting only 2001–2016 ---
 fig, ax = plt.subplots(figsize=(14, 6))
