@@ -6,7 +6,7 @@ import os
 # Specify the input CSV file and the output XLSX file
 folder_path = "/Users/co25936/Desktop/PER/IPEDS/Excel Files IPEDS/"  # Ensure path is correctly formatted
 
-for year in range(2023, 2024):
+for year in range(2000, 2024):
     filename = f"{folder_path}c{year}_a"  # Construct full file path
     input_csv_file = f'{filename}.csv'  # Use f-string for input file path
     output_xlsx_file = f'{filename}.xlsx'  # Use f-string for output file path

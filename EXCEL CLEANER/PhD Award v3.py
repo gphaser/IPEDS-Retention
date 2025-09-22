@@ -161,6 +161,8 @@ yearly_totals["PCR_value_total"] = (
     (yearly_totals["first_minus_1"] + yearly_totals["first"] + yearly_totals["first_plus_1"])
 )
 
+
+
 # Count unique UNITIDs per year
 unitid_counts = complete_df.groupby("Year")["UNITID"].nunique().reset_index()
 unitid_counts.columns = ["Year", "Unique_UNITIDs"]
@@ -194,6 +196,17 @@ print(filtered_df[["Year", "CTOTALW"]])
 
 
 # TO CHECK IF MALE + FEMALE = TOTAL
+
+
+# --- Find institutions with PCR > 2 ---
+high_pcr_df = complete_df[complete_df["PCR_value"] > 2]
+
+if not high_pcr_df.empty:
+    print("\nUNITIDs with PCR_value > 2:")
+    for _, row in high_pcr_df[["UNITID", "Year", "PCR_value"]].sort_values(["UNITID", "Year"]).iterrows():
+        print(f"UNITID: {row['UNITID']}, Year: {int(row['Year'])}, PCR_value: {row['PCR_value']:.3f}")
+else:
+    print("\nNo institutions with PCR_value > 2.")
 
 
 
@@ -442,6 +455,16 @@ print(enrollment_and_grads[["Year", "first"]])
 print("\nNumber of PhD grads per year:")
 print(enrollment_and_grads[["Year", "grad"]])
 
+
+# --- Find institutions with PCR > 2 ---
+high_pcr_df = complete_df[complete_df["PCR_value"] > 2]
+
+if not high_pcr_df.empty:
+    print("\nUNITIDs with PCR_value > 2:")
+    for _, row in high_pcr_df[["UNITID", "Year", "PCR_value"]].sort_values(["UNITID", "Year"]).iterrows():
+        print(f"UNITID: {row['UNITID']}, Year: {int(row['Year'])}, PCR_value: {row['PCR_value']:.3f}")
+else:
+    print("\nNo institutions with PCR_value > 2.")
 
 
 
