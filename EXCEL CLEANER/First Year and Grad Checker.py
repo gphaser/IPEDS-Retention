@@ -102,15 +102,10 @@ for fname in ipeds_files:
     aw_col     = find_col(cols, ['awlevel'])
     ctotal_col = find_col(cols, ['ctotalt'])
 
-    # Print missing columns
-    required_cols = {'unit_col': unit_col, 'cip_col': cip_col, 'aw_col': aw_col, 'ctotal_col': ctotal_col}
-    for key, val in required_cols.items():
-        if val is None:
-            print(f"\n Could not find {key} in {fname}")
-            print(f"Available columns: {cols}")
-
-    # Skip files missing critical columns
+    # Skip if missing critical columns
     if unit_col is None or cip_col is None or aw_col is None or ctotal_col is None:
+        print(f"\n Could not find required columns in {fname}")
+        print(f"Available columns: {cols}")
         continue
 
     ipeds_unitids.update(df[unit_col].dropna().unique())
@@ -132,6 +127,7 @@ for fname in ipeds_files:
             "file": fname,
             "unitid": uid,
             "year": year,
+            "institution_name": np.nan,
             "cip": r.get(cip_col, ""),
             "awlevel": r.get(aw_col),
             "ctotal": r.get(ctotal_col),
@@ -174,17 +170,14 @@ for fname in gss_files:
 
     unit_col = find_col(cols, ['unitid'])
     gss_code_col = find_col(cols, ['gss_code'])
+    inst_col = find_col(cols, ['institution_name'])
     # First-year columns: pick the first one that exists
     possible_first_cols = ['ft_frst_tot_all_races_v', 'ft_frst_tot_all_races', 'ft_frst_tot', 'ft_frst', 'first_year', 'first', 'freshman']
     first_col = next((c for c in possible_first_cols if c in cols), None)
 
-    required_cols = {'unit_col': unit_col, 'gss_code_col': gss_code_col, 'first_col': first_col}
-    for key, val in required_cols.items():
-        if val is None:
-            print(f"\n could not find {key} in {fname}")
-            print(f"Available columns: {cols}")
-
     if unit_col is None or gss_code_col is None or first_col is None:
+        print(f"\n Could not find required columns in {fname}")
+        print(f"Available columns: {cols}")
         continue
 
     gss_unitids.update(df[unit_col].dropna().unique())
@@ -194,40 +187,61 @@ for fname in gss_files:
     df203[first_col] = pd.to_numeric(df203[first_col], errors='coerce').fillna(0)
 
     for uid, val in df203.groupby(unit_col)[first_col].sum().items():
+        inst_name = None
+        if inst_col and inst_col in df203.columns:
+            inst_vals = df203.loc[df203[unit_col] == uid, inst_col].dropna().unique()
+            if len(inst_vals) > 0:
+                inst_name = inst_vals[0]
         first_map[(uid, year)] = float(val)
         meta_rows.append({
             "source": "GSS",
             "file": fname,
             "unitid": uid,
             "year": year,
+            "institution_name": inst_name,
             "cip": np.nan,
             "awlevel": np.nan,
             "ctotal": np.nan,
             "first_year_count": float(val)
         })
+
 # ---------- combine unitids ----------
-all_unitids = sorted(set(list(ipeds_unitids) + list(gss_unitids)), key=lambda x: (float(x) if pd.notna(x) and str(x).replace('.', '', 1).isdigit() else float('inf'), str(x)))
+all_unitids = sorted(set(list(ipeds_unitids) + list(gss_unitids)),
+                     key=lambda x: (float(x) if pd.notna(x) and str(x).replace('.', '', 1).isdigit() else float('inf'), str(x)))
 
 print(f"Total UNITIDs found: {len(all_unitids)} (IPEDS: {len(ipeds_unitids)}, GSS: {len(gss_unitids)})")
+
+# ---------- lookup institution names from GSS ----------
+inst_lookup = {}
+for r in meta_rows:
+    if r["source"] == "GSS" and r.get("institution_name"):
+        inst_lookup[r["unitid"]] = r["institution_name"]
 
 # ---------- build wide table ----------
 rows = []
 for uid in all_unitids:
     row = {"UNITID": uid}
+    row["Institution_Name"] = inst_lookup.get(uid, None)
+
     # first-years columns 2000..2023
     for y in YEARS:
         col = f"first-years_{y}"
-        row[col] = int(first_map.get((uid, y), 0)) if (uid, y) in first_map else 0
+        val = first_map.get((uid, y))
+        row[col] = int(val) if val is not None and not pd.isna(val) else None
+
     # phd columns 2000..2023
     for y in YEARS:
         col = f"phd_degrees-earned_{y}"
-        row[col] = int(phd_map.get((uid, y), 0)) if (uid, y) in phd_map else 0
+        val = phd_map.get((uid, y))
+        row[col] = int(val) if val is not None and not pd.isna(val) else None
+
     # masters columns 2000..2023
     for y in YEARS:
         col = f"masters_degrees-earned_{y}"
-        row[col] = int(masters_map.get((uid, y), 0)) if (uid, y) in masters_map else 0
+        val = masters_map.get((uid, y))
+        row[col] = int(val) if val is not None and not pd.isna(val) else None
 
-    # CIP & AWLEVEL summary for this unitid
+    # CIP & AWLEVEL summary
     row['cipcodes_seen'] = ";".join(sorted(set([c for c in cip_seen.get(uid, set()) if c not in ("", "nan")])))
     row['awlevels_seen'] = ";".join(sorted([str(int(x)) for x in sorted(aw_seen.get(uid, set()))])) if uid in aw_seen else ""
 
@@ -235,233 +249,72 @@ for uid in all_unitids:
 
 wide_df = pd.DataFrame(rows)
 
-# ensure desired column order: UNITID, first-years, phd, masters, cip/awlevel
-first_cols = [f"first-years_{y}" for y in YEARS]
-phd_cols = [f"phd_degrees-earned_{y}" for y in YEARS]
-masters_cols = [f"masters_degrees-earned_{y}" for y in YEARS]
-final_cols = ["UNITID"] + first_cols + phd_cols + masters_cols + ["cipcodes_seen", "awlevels_seen"]
-wide_df = wide_df[final_cols]
+# ------------------ Extended variable set ------------------
+ADDITIONAL_VARS = [
+    # Masters/Doctorate totals
+    'ma_ft_tot_all_races_v', 'dr_ft_tot_all_races_v',
+    'ma_ft_men_all_races_v', 'ma_ft_wmen_all_races_v',
+    'dr_ft_men_all_races_v', 'dr_ft_wmen_all_races_v',
 
-# ---------- filter out UNITIDs with all zeros ----------
-numeric_cols = first_cols + phd_cols + masters_cols
-wide_df = wide_df.loc[~(wide_df[numeric_cols].sum(axis=1) == 0)].reset_index(drop=True)
+    # First years by degree type
+    'ma_ft_frst_tot_all_races_v', 'dr_ft_frst_tot_all_races_v',
 
-# ---------- meta sheet (debug) ----------
-meta_df = pd.DataFrame(meta_rows).sort_values(by=["unitid", "year", "source"])
+    # First-year by sex
+    'ft_frst_men_all_races_v', 'ft_frst_wmen_all_races_v',
 
-# ---------- write Excel with two sheets ----------
-with pd.ExcelWriter(output_path, engine="openpyxl") as w:
-    wide_df.to_excel(w, sheet_name="wide", index=False)
-    meta_df.to_excel(w, sheet_name="meta", index=False)
+    # Total enrollment by race
+    'ft_tot_black_v', 'ft_tot_indian_v', 'ft_tot_asian_v', 'ft_tot_pacific_v',
+    'ft_tot_white_v', 'ft_tot_hisp_v', 'ft_tot_multi_v', 'ft_tot_unk_v', 'ft_tot_forgn_v',
 
-print(f"Wrote output to {output_path}")
+    # Degree totals
+    'ctotalm', 'ctotalw',
 
-print("\n Sanity check passed: No input files were modified.")
+    # Degrees by race
+    'crace17', 'crace18', 'crace19', 'crace20', 'crace21', 'crace22', 'cunknt',
+    'cbkaat', 'casiat', 'cnhpit', 'chispt', 'cwhitt', 'c2mort', 'cnralt',
 
+    # First-time enrollment by race
+    'ft_frst_tot_black_v', 'ft_frst_tot_indian_v', 'ft_frst_tot_asian_v', 'ft_frst_tot_pacific_v',
+    'ft_frst_tot_white_v', 'ft_frst_tot_hisp_v', 'ft_frst_tot_multi_v', 'ft_frst_tot_unk_v', 'ft_frst_tot_forgn_v',
 
+    # Sex × race full-time
+    'ft_men_black_v', 'ft_men_indian_v', 'ft_men_asian_v', 'ft_men_pacific_v',
+    'ft_men_white_v', 'ft_men_hisp_v', 'ft_men_multi_v', 'ft_men_unk_v', 'ft_men_forgn_v',
+    'ft_wmen_black_v', 'ft_wmen_indian_v', 'ft_wmen_asian_v', 'ft_wmen_pacific_v',
+    'ft_wmen_white_v', 'ft_wmen_hisp_v', 'ft_wmen_multi_v', 'ft_wmen_unk_v', 'ft_wmen_forgn_v'
+]
 
+# Container for all extra vars
+extra_maps = {v: {} for v in ADDITIONAL_VARS}
 
-
- 
-''' ISSUE IS CTOTAL is also picking up xctotal 
-import os
-import re
-import pandas as pd
-import numpy as np
-import time
-
-def get_file_modtimes(path):
-    """Return dict of filename -> last modified time (epoch)."""
-    modtimes = {}
-    for fname in sorted(os.listdir(path)):
-        fullpath = os.path.join(path, fname)
-        if os.path.isfile(fullpath):
-            modtimes[fname] = os.path.getmtime(fullpath)
-    return modtimes
-
-def check_for_modifications(before, after, label):
-    """Raise error if any file has a changed timestamp."""
-    for fname, ts_before in before.items():
-        ts_after = after.get(fname)
-        if ts_after is None:
-            raise RuntimeError(f"{label}: File {fname} disappeared during processing!")
-        if ts_before != ts_after:
-            raise RuntimeError(f"{label}: File {fname} was modified! "
-                               f"Before={time.ctime(ts_before)}, After={time.ctime(ts_after)}")
-
-
-# ========== USER PATHS ==========
-ipeds_path = "/Users/co25936/Desktop/PER/IPEDS/Excel Files IPEDS/Untrimmed IPEDS"
-gss_path  = "/Users/co25936/Desktop/PER/IPEDS/Excel Files GSS/Untrimmed GSS"
-output_path = "/Users/co25936/Desktop/PER/IPEDS/FirstYear and Grad Checker.xlsx"
-# =================================
-
-# ===== Capture timestamps before processing =====
-ipeds_before = get_file_modtimes(ipeds_path)
-gss_before   = get_file_modtimes(gss_path)
-
-# years you want present as columns (2000..2023 inclusive)
-YEARS = list(range(2000, 2024))
-
-# helpers --------------------------------------------------------------------
-def find_col(cols, must_have=[]):
-    """Find first column name that contains all tokens in must_have (case-insensitive)."""
-    for c in cols:
-        if all(tok in c for tok in must_have):
-            return c
-    return None
-
-def normalize_cols(df):
-    df = df.copy()
-    df.columns = [str(c).strip().lower() for c in df.columns]
-    return df
-
-def safe_to_numeric(s):
-    try:
-        return pd.to_numeric(s, errors='coerce')
-    except Exception:
-        return s
-
-def is_phys_cip(val):
-    """Return True if a CIP looks like 40.08xx (handles strings and numbers heuristically)."""
-    if pd.isna(val):
-        return False
-    s = str(val).strip()
-    if "40.08" in s:
-        return True
-    # catch numeric-like 400801 or 4008 variants
-    if re.match(r"^40\.?08", s):
-        return True
-    if re.match(r"^4008", s):
-        return True
-    return False
-
-# maps to collect
-ipeds_unitids = set()
-gss_unitids = set()
-
-# keyed by (unitid, year)
-first_map = {}      # (unitid, year) -> first-year count
-phd_map   = {}      # (unitid, year) -> CTOTALT sum for AWLEVEL 9/17
-masters_map = {}    # optional, AWLEVEL 7 (kept in case you want it)
-# metadata per unitid aggregated across years
-cip_seen = {}       # unitid -> set of cipcodes encountered (40.08 variants)
-aw_seen  = {}       # unitid -> set of awlevels encountered (for 40.08 rows)
-
-# meta rows for debugging: list of dicts with unitid, year, cip, awlevel, ctotalt, first_year
-meta_rows = []
-
-# ---------- process IPEDS ----------
-ipeds_files = sorted(os.listdir(ipeds_path))
+# ------------------ Extract from IPEDS ------------------
 for fname in ipeds_files:
-    # look for pattern cYYYY_a.* (case-insensitive) anywhere in filename
-    m = re.search(r"c(\d{4})_a\.", fname, re.I)
+    m = re.search(r"c(\d{4})", fname, re.I)
     if not m:
-        # if you have slightly different filenames, try more permissive pattern:
-        m2 = re.search(r"c(\d{4})", fname, re.I)
-        if m2:
-            year = int(m2.group(1))
-        else:
-            continue
-    else:
-        year = int(m.group(1))
-
-    # only collect years 2000..2023 (but script can be adapted)
-    if year not in YEARS:
-        # still process to collect unitids if you want; currently skip if outside YEARS
-        # remove the continue if you want to include other years
         continue
-
+    year = int(m.group(1))
+    if year not in YEARS:
+        continue
     fullpath = os.path.join(ipeds_path, fname)
     try:
         df = pd.read_excel(fullpath)
     except Exception as e:
-        print(f"Failed reading {fullpath}: {e}")
+        print(f"Skip {fname} - {e}")
         continue
 
     df = normalize_cols(df)
-    cols = df.columns.tolist()
-
-    # robust column detections
-    unit_col = find_col(cols, ['unitid']) or find_col(cols, ['unit', 'id'])
-    cip_col  = find_col(cols, ['cip'])
-    aw_col   = find_col(cols, ['awlevel']) or find_col(cols, ['aw', 'level']) or find_col(cols, ['awlev'])
-    ctotal_col = find_col(cols, ['ctotalt']) or find_col(cols, ['ctotal']) or find_col(cols, ['ctot'])
-
-    if unit_col is None:
-        # cannot process this file
-        print(f"Skipping IPEDS {fname} — no UNITID-like column found")
+    if 'unitid' not in df.columns:
         continue
 
-    ipeds_unitids.update(df[unit_col].dropna().unique())
+    # For each additional var, if present in file, record value
+    for var in ADDITIONAL_VARS:
+        var_lower = var.lower()
+        if var_lower in df.columns:
+            df[var_lower] = pd.to_numeric(df[var_lower], errors='coerce').fillna(0)
+            for uid, val in df.groupby('unitid')[var_lower].sum().items():
+                extra_maps[var][(uid, year)] = float(val)
 
-    if cip_col is None:
-        # no CIP info -> we cannot restrict to 40.08; skip this file for physics filtering
-        print(f"Skipping CIP filter for IPEDS {fname} — no CIP col found")
-        continue
-
-    # ensure string for CIP checks
-    df[cip_col] = df[cip_col].fillna("").astype(str)
-
-    # filter physics/astronomy CIP 40.08xx
-    mask_phys = df[cip_col].apply(is_phys_cip)
-    df_phys = df.loc[mask_phys].copy()
-    if df_phys.shape[0] == 0:
-        # nothing to do for this file
-        continue
-
-    # record CIP and AWLEVELs seen per unitid
-    for _, r in df_phys.iterrows():
-        uid = r.get(unit_col)
-        if pd.isna(uid):
-            continue
-        cipval = str(r.get(cip_col, "")).strip()
-        awval = r.get(aw_col) if aw_col in r.index else None
-
-        cip_seen.setdefault(uid, set()).add(cipval)
-        if awval is not None and not (pd.isna(awval) or awval == ""):
-            aw_seen.setdefault(uid, set()).add(int(safe_to_numeric(awval)))
-
-        # collect a meta row
-        meta_rows.append({
-            "source": "IPEDS",
-            "file": fname,
-            "unitid": uid,
-            "year": year,
-            "cip": cipval,
-            "awlevel": awval,
-            "ctotal": r.get(ctotal_col) if ctotal_col in r.index else np.nan,
-            "first_year_count": np.nan  # filled only from GSS side
-        })
-
-    # degrees aggregated: need AWLEVEL + CTOTAL columns
-    if aw_col is None or ctotal_col is None:
-        continue
-
-    # coerce numeric
-    df_phys[aw_col] = pd.to_numeric(df_phys[aw_col], errors='coerce')
-    df_phys[ctotal_col] = pd.to_numeric(df_phys[ctotal_col], errors='coerce').fillna(0)
-
-    print(f"\nChecking {fname} ({year})")
-    print("Detected AWLEVEL col:", aw_col)
-    print("Detected CTOTAL col:", ctotal_col)
-
-    # PhD AWLEVEL 9 or 17
-    phd_rows = df_phys[df_phys[aw_col].isin([9, 17])]
-    if not phd_rows.empty:
-        agg = phd_rows.groupby(unit_col)[ctotal_col].sum()
-        for uid, val in agg.items():
-            phd_map[(uid, year)] = float(val)  # keep float; convert later if you want int
-
-    # Masters AWLEVEL 7 (optional)
-    masters_rows = df_phys[df_phys[aw_col] == 7]
-    if not masters_rows.empty:
-        agg = masters_rows.groupby(unit_col)[ctotal_col].sum()
-        for uid, val in agg.items():
-            masters_map[(uid, year)] = float(val)
-
-# ---------- process GSS ----------
-gss_files = sorted(os.listdir(gss_path))
+# ------------------ Extract from GSS ------------------
 for fname in gss_files:
     m = re.search(r"gss(\d{4})", fname, re.I)
     if not m:
@@ -469,231 +322,102 @@ for fname in gss_files:
     year = int(m.group(1))
     if year not in YEARS:
         continue
-
     fullpath = os.path.join(gss_path, fname)
     try:
         df = pd.read_excel(fullpath)
     except Exception as e:
-        print(f"Failed reading {fullpath}: {e}")
+        print(f"Skip {fname} - {e}")
         continue
 
     df = normalize_cols(df)
-    cols = df.columns.tolist()
-
-    unit_col = find_col(cols, ['unitid']) or find_col(cols, ['unit', 'id'])
-    gss_code_col = find_col(cols, ['gss', 'code']) or find_col(cols, ['gss_code']) or find_col(cols, ['gss'])
-    # try explicit first-year column names then fallbacks
-    possible_first_cols = [
-        'ft_frst_tot_all_races_v', 'ft_frst_tot_all_races',
-        'ft_frst_tot', 'ft_frst', 'first_year', 'first', 'freshman'
-    ]
-    first_col = None
-    for cand in possible_first_cols:
-        if cand in cols:
-            first_col = cand
-            break
-    if first_col is None:
-        # fallback heuristics
-        cands = [c for c in cols if ('ft_frst' in c) or ('frst' in c and 'tot' in c) or ('first' in c and 'tot' in c)]
-        if cands:
-            first_col = cands[0]
-
-    if unit_col is None:
-        print(f"Skipping GSS {fname} — no UNITID-like col")
-        continue
-    if gss_code_col is None:
-        print(f"Skipping GSS {fname} — no GSS code col found")
-        continue
-    if first_col is None:
-        print(f"Skipping GSS {fname} — no first-year-like column found")
+    if 'unitid' not in df.columns:
         continue
 
-    gss_unitids.update(df[unit_col].dropna().unique())
+    for var in ADDITIONAL_VARS:
+        var_lower = var.lower()
+        if var_lower in df.columns:
+            df[var_lower] = pd.to_numeric(df[var_lower], errors='coerce').fillna(0)
+            for uid, val in df.groupby('unitid')[var_lower].sum().items():
+                extra_maps[var][(uid, year)] = float(val)
 
-    # filter to gss_code == 203 (physics first-year code)
-    try:
-        df[gss_code_col] = pd.to_numeric(df[gss_code_col], errors='coerce')
-    except Exception:
-        pass
-
-    mask_203 = df[gss_code_col].fillna(-1).astype(int) == 203
-    df203 = df.loc[mask_203].copy()
-    if df203.empty:
-        continue
-
-    # convert first-year counts to numeric
-    df203[first_col] = pd.to_numeric(df203[first_col], errors='coerce').fillna(0)
-
-    agg = df203.groupby(unit_col)[first_col].sum()
-    for uid, val in agg.items():
-        first_map[(uid, year)] = float(val)
-        # augment meta rows if we had IPEDS meta entries for same unitid/year -> but we'll just append a GSS meta row
-        meta_rows.append({
-            "source": "GSS",
-            "file": fname,
-            "unitid": uid,
-            "year": year,
-            "cip": np.nan,
-            "awlevel": np.nan,
-            "ctotal": np.nan,
-            "first_year_count": float(val)
-        })
-
-# ---------- combine unitids ----------
-all_unitids = sorted(set(list(ipeds_unitids) + list(gss_unitids)), key=lambda x: (float(x) if pd.notna(x) and str(x).replace('.', '', 1).isdigit() else float('inf'), str(x)))
-
-print(f"Total UNITIDs found: {len(all_unitids)} (IPEDS: {len(ipeds_unitids)}, GSS: {len(gss_unitids)})")
-
-# ---------- build wide table ----------
-rows = []
-for uid in all_unitids:
-    row = {"UNITID": uid}
-    # first-years columns 2000..2023
+# ------------------ Add to wide table ------------------
+for var in ADDITIONAL_VARS:
     for y in YEARS:
-        col = f"first-years_{y}"
-        row[col] = int(first_map.get((uid, y), 0)) if (uid, y) in first_map else 0
-    # phd columns 2000..2023
-    for y in YEARS:
-        col = f"phd_degrees-earned_{y}"
-        row[col] = int(phd_map.get((uid, y), 0)) if (uid, y) in phd_map else 0
-    # masters columns 2000..2023
-    for y in YEARS:
-        col = f"masters_degrees-earned_{y}"
-        row[col] = int(masters_map.get((uid, y), 0)) if (uid, y) in masters_map else 0
+        col = f"{var}_{y}"
+        wide_df[col] = [
+            int(extra_maps[var].get((uid, y))) if (uid, y) in extra_maps[var] and not pd.isna(extra_maps[var][(uid, y)])
+            else None
+            for uid in wide_df["UNITID"]
+        ]
 
-    # CIP & AWLEVEL summary for this unitid
-    row['cipcodes_seen'] = ";".join(sorted(set([c for c in cip_seen.get(uid, set()) if c not in ("", "nan")])))
-    row['awlevels_seen'] = ";".join(sorted([str(int(x)) for x in sorted(aw_seen.get(uid, set()))])) if uid in aw_seen else ""
+# Update column order to keep new variables together at end
+add_var_cols = [f"{var}_{y}" for var in ADDITIONAL_VARS for y in YEARS]
+final_cols = list(wide_df.columns.difference(add_var_cols, sort=False)) + add_var_cols
+wide_df = wide_df[final_cols]
 
-    rows.append(row)
 
-wide_df = pd.DataFrame(rows)
 
-# ensure desired column order: UNITID, first-years, phd, masters, cip/awlevel
+# ensure desired column order
 first_cols = [f"first-years_{y}" for y in YEARS]
 phd_cols = [f"phd_degrees-earned_{y}" for y in YEARS]
 masters_cols = [f"masters_degrees-earned_{y}" for y in YEARS]
-final_cols = ["UNITID"] + first_cols + phd_cols + masters_cols + ["cipcodes_seen", "awlevels_seen"]
+add_var_cols = [f"{var}_{y}" for var in ADDITIONAL_VARS for y in YEARS]
+final_cols = list(wide_df.columns.difference(add_var_cols, sort=False)) + add_var_cols
 wide_df = wide_df[final_cols]
+# final_cols = ["UNITID", "Institution_Name"] + first_cols + phd_cols + masters_cols + ["cipcodes_seen", "awlevels_seen"]
+# wide_df = wide_df[final_cols]
 
-# ---------- filter out UNITIDs with all zeros ----------
+# ---------- filter out UNITIDs with all blanks ----------
 numeric_cols = first_cols + phd_cols + masters_cols
-wide_df = wide_df.loc[~(wide_df[numeric_cols].sum(axis=1) == 0)].reset_index(drop=True)
+# Replace NaN with 0 temporarily to check if sum == 0
+mask_all_zero_or_blank = (wide_df[numeric_cols].fillna(0).sum(axis=1) == 0)
 
-# ---------- meta sheet (debug) ----------
+# Keep only rows where not all are blank/zero
+wide_df = wide_df.loc[~mask_all_zero_or_blank].reset_index(drop=True)
+
+# ---------- convert wide to long including all variables ----------
+print("\nConverting wide table to long format...")
+
+# Identify identifier and year columns
+id_vars = ["UNITID", "Institution_Name", "cipcodes_seen", "awlevels_seen"]
+
+# Find all columns that end with a year suffix (e.g. "_2020")
+long_candidates = [c for c in wide_df.columns if re.search(r"_\d{4}$", c)]
+
+# Extract variable base names (e.g. "first-years", "phd_degrees-earned", "ma_ft_tot_all_races_v")
+variable_bases = sorted(set(re.sub(r"_\d{4}$", "", c) for c in long_candidates))
+
+print(f"Found {len(variable_bases)} variable groups to melt into long format.")
+
+# Melt all at once using pandas.wide_to_long
+long_df = pd.wide_to_long(
+    wide_df,
+    stubnames=variable_bases,
+    i=id_vars,
+    j="Year",
+    sep="_",
+    suffix=r"\d+"
+).reset_index()
+
+# Ensure Year is numeric
+long_df["Year"] = pd.to_numeric(long_df["Year"], errors="coerce")
+
+# Sort neatly
+long_df = long_df.sort_values(["UNITID", "Year"]).reset_index(drop=True)
+
+# Replace blanks with NaN for clarity
+long_df.replace({0: np.nan, "": np.nan}, inplace=True)
+
+# ---------- meta sheet ----------
 meta_df = pd.DataFrame(meta_rows).sort_values(by=["unitid", "year", "source"])
 
-# ---------- write Excel with two sheets ----------
+# ---------- write Excel ----------
 with pd.ExcelWriter(output_path, engine="openpyxl") as w:
-    wide_df.to_excel(w, sheet_name="wide", index=False)
+    long_df.to_excel(w, sheet_name="long", index=False)
     meta_df.to_excel(w, sheet_name="meta", index=False)
 
-print(f"Wrote output to {output_path}")
-
-# ===== Capture timestamps after processing =====
-ipeds_after = get_file_modtimes(ipeds_path)
-gss_after   = get_file_modtimes(gss_path)
-
-# ===== Compare =====
-check_for_modifications(ipeds_before, ipeds_after, "IPEDS")
-check_for_modifications(gss_before, gss_after, "GSS")
+print(f" Wrote long-format output (with {len(variable_bases)} variables) to {output_path}")
 
 print("\n Sanity check passed: No input files were modified.")
 
-'''
 
-''' Old way bit broken
-import os
-import re
-import pandas as pd
-
-# Filepaths
-ipeds_path = "/Users/co25936/Desktop/PER/IPEDS/Excel Files IPEDS/"
-gss_path = "/Users/co25936/Desktop/PER/IPEDS/Excel Files GSS/"
-output_path = "/Users/co25936/Desktop/PER/IPEDS/FirstYear and Grad Checker.xlsx"
-
-# Regex to match years in filenames
-ipeds_pattern = re.compile(r"c(\d{4})_a\.xlsx")
-gss_pattern = re.compile(r"gss(\d{4})_Code\.xlsx")
-
-# Collect UNITIDs
-ipeds_unitids = set()
-gss_unitids = set()
-
-# Store data
-first_years_data = {}
-degrees_data = {}
-
-# --- Process IPEDS (Degrees) ---
-for file in os.listdir(ipeds_path):
-    match = ipeds_pattern.match(file)
-    if not match:
-        continue
-    year = match.group(1)
-    df = pd.read_excel(os.path.join(ipeds_path, file))
-
-    if "UNITID" not in df.columns:
-        continue
-
-    ipeds_unitids.update(df["UNITID"].unique())
-
-    # Physics/Astronomy CIP codes 40.08xx
-    if "CIPCODE" not in df.columns:
-        continue
-    df_phys = df[df["CIPCODE"].astype(str).str.startswith("40.08")]
-
-    # Degrees earned
-    if "AWLEVEL" in df_phys.columns and "CTOTALT" in df_phys.columns:
-        # PhDs (AWLEVEL = 9,17)
-        phd = df_phys[df_phys["AWLEVEL"].isin([9, 17])]
-        deg = phd.groupby("UNITID")["CTOTALT"].sum()
-        for uid, val in deg.items():
-            degrees_data.setdefault(uid, {})[f"phd_degrees-earned_{year}"] = val
-
-        # Masters (AWLEVEL = 7)
-        masters = df_phys[df_phys["AWLEVEL"] == 7]
-        deg = masters.groupby("UNITID")["CTOTALT"].sum()
-        for uid, val in deg.items():
-            degrees_data.setdefault(uid, {})[f"masters_degrees-earned_{year}"] = val
-
-# --- Process GSS (First-years) ---
-for file in os.listdir(gss_path):
-    match = gss_pattern.match(file)
-    if not match:
-        continue
-    year = match.group(1)
-    df = pd.read_excel(os.path.join(gss_path, file))
-    print(f"Processing GSS {file}, columns = {df.columns.tolist()}")  # DEBUG
-
-    if "UNITID" not in df.columns or "gss_code" not in df.columns:
-        continue
-
-    # Collect UNITIDs
-    gss_unitids.update(df["UNITID"].unique())
-
-    # Filter to gss_code == 203 and get first-year counts
-    if "ft_frst_tot_all_races_v" in df.columns:
-        df_first = df[df["gss_code"] == 203]
-        fy = df_first.groupby("UNITID")["ft_frst_tot_all_races_v"].sum()
-        for uid, val in fy.items():
-            first_years_data.setdefault(uid, {})[f"first-years_{year}"] = val
-
-# --- Combine UNITIDs ---
-all_unitids = sorted(ipeds_unitids.union(gss_unitids))
-
-# --- Build Wide Table ---
-rows = []
-for uid in all_unitids:
-    row = {"UNITID": uid}
-    if uid in first_years_data:
-        row.update(first_years_data[uid])
-    if uid in degrees_data:
-        row.update(degrees_data[uid])
-    rows.append(row)
-
-output_df = pd.DataFrame(rows)
-
-# Save to Excel
-output_df.to_excel(output_path, index=False)
-print(f"File saved to {output_path}")
-'''
