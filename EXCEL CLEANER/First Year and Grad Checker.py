@@ -256,33 +256,88 @@ ADDITIONAL_VARS = [
     'ma_ft_men_all_races_v', 'ma_ft_wmen_all_races_v',
     'dr_ft_men_all_races_v', 'dr_ft_wmen_all_races_v',
 
-    # First years by degree type
+    # First years by degree type (overall)
     'ma_ft_frst_tot_all_races_v', 'dr_ft_frst_tot_all_races_v',
 
-    # First-year by sex
+    # First-year by sex (overall)
     'ft_frst_men_all_races_v', 'ft_frst_wmen_all_races_v',
 
     # Total enrollment by race
-    'ft_tot_black_v', 'ft_tot_indian_v', 'ft_tot_asian_v', 'ft_tot_pacific_v',
+    'ft_tot_all_races_v', 'ft_tot_black_v', 'ft_tot_indian_v', 'ft_tot_asian_v', 'ft_tot_pacific_v',
     'ft_tot_white_v', 'ft_tot_hisp_v', 'ft_tot_multi_v', 'ft_tot_unk_v', 'ft_tot_forgn_v',
 
-    # Degree totals
+    # First-time enrollment by race
+    'ft_frst_tot_all_races_v', 'ft_frst_tot_black_v', 'ft_frst_tot_indian_v', 'ft_frst_tot_asian_v',
+    'ft_frst_tot_pacific_v', 'ft_frst_tot_white_v', 'ft_frst_tot_hisp_v', 'ft_frst_tot_multi_v',
+    'ft_frst_tot_unk_v', 'ft_frst_tot_forgn_v',
+
+    # First-time men by race
+    'ft_frst_men_black_v', 'ft_frst_men_indian_v', 'ft_frst_men_asian_v', 'ft_frst_men_pacific_v',
+    'ft_frst_men_white_v', 'ft_frst_men_hisp_v', 'ft_frst_men_multi_v', 'ft_frst_men_unk_v', 'ft_frst_men_forgn_v',
+
+    # First-time women by race
+    'ft_frst_wmen_black_v', 'ft_frst_wmen_indian_v', 'ft_frst_wmen_asian_v', 'ft_frst_wmen_pacific_v',
+    'ft_frst_wmen_white_v', 'ft_frst_wmen_hisp_v', 'ft_frst_wmen_multi_v', 'ft_frst_wmen_unk_v', 'ft_frst_wmen_forgn_v',
+
+    # Degree totals by sex 
     'ctotalm', 'ctotalw',
 
-    # Degrees by race
+    # Degree totals by race
     'crace17', 'crace18', 'crace19', 'crace20', 'crace21', 'crace22', 'cunknt',
     'cbkaat', 'casiat', 'cnhpit', 'chispt', 'cwhitt', 'c2mort', 'cnralt',
 
-    # First-time enrollment by race
-    'ft_frst_tot_black_v', 'ft_frst_tot_indian_v', 'ft_frst_tot_asian_v', 'ft_frst_tot_pacific_v',
-    'ft_frst_tot_white_v', 'ft_frst_tot_hisp_v', 'ft_frst_tot_multi_v', 'ft_frst_tot_unk_v', 'ft_frst_tot_forgn_v',
+    # ---- Masters breakdowns ----
+    'ma_ft_tot_black_v', 'ma_ft_tot_indian_v', 'ma_ft_tot_asian_v', 'ma_ft_tot_pacific_v',
+    'ma_ft_tot_white_v', 'ma_ft_tot_hisp_v', 'ma_ft_tot_multi_v', 'ma_ft_tot_unk_v', 'ma_ft_tot_forgn_v',
 
-    # Sex × race full-time
-    'ft_men_black_v', 'ft_men_indian_v', 'ft_men_asian_v', 'ft_men_pacific_v',
-    'ft_men_white_v', 'ft_men_hisp_v', 'ft_men_multi_v', 'ft_men_unk_v', 'ft_men_forgn_v',
-    'ft_wmen_black_v', 'ft_wmen_indian_v', 'ft_wmen_asian_v', 'ft_wmen_pacific_v',
-    'ft_wmen_white_v', 'ft_wmen_hisp_v', 'ft_wmen_multi_v', 'ft_wmen_unk_v', 'ft_wmen_forgn_v'
+    'ma_ft_men_black_v', 'ma_ft_men_indian_v', 'ma_ft_men_asian_v', 'ma_ft_men_pacific_v',
+    'ma_ft_men_white_v', 'ma_ft_men_hisp_v', 'ma_ft_men_multi_v', 'ma_ft_men_unk_v', 'ma_ft_men_forgn_v',
+
+    'ma_ft_wmen_black_v', 'ma_ft_wmen_indian_v', 'ma_ft_wmen_asian_v', 'ma_ft_wmen_pacific_v',
+    'ma_ft_wmen_white_v', 'ma_ft_wmen_hisp_v', 'ma_ft_wmen_multi_v', 'ma_ft_wmen_unk_v', 'ma_ft_wmen_forgn_v',
+
+    # ---- Masters first-year breakdowns ----
+    'ma_ft_frst_men_black_v', 'ma_ft_frst_men_indian_v', 'ma_ft_frst_men_asian_v',
+    'ma_ft_frst_men_pacific_v', 'ma_ft_frst_men_white_v', 'ma_ft_frst_men_hisp_v',
+    'ma_ft_frst_men_multi_v', 'ma_ft_frst_men_unk_v', 'ma_ft_frst_men_forgn_v',
+    'ma_ft_frst_men_all_races_v',
+
+    'ma_ft_frst_wmen_black_v', 'ma_ft_frst_wmen_indian_v', 'ma_ft_frst_wmen_asian_v',
+    'ma_ft_frst_wmen_pacific_v', 'ma_ft_frst_wmen_white_v', 'ma_ft_frst_wmen_hisp_v',
+    'ma_ft_frst_wmen_multi_v', 'ma_ft_frst_wmen_unk_v', 'ma_ft_frst_wmen_forgn_v',
+    'ma_ft_frst_wmen_all_races_v',
+
+    'ma_ft_frst_tot_black_v', 'ma_ft_frst_tot_indian_v', 'ma_ft_frst_tot_asian_v',
+    'ma_ft_frst_tot_pacific_v', 'ma_ft_frst_tot_white_v', 'ma_ft_frst_tot_hisp_v',
+    'ma_ft_frst_tot_multi_v', 'ma_ft_frst_tot_unk_v', 'ma_ft_frst_tot_forgn_v',
+
+    # ---- Doctoral breakdowns ----
+    'dr_ft_tot_black_v', 'dr_ft_tot_indian_v', 'dr_ft_tot_asian_v', 'dr_ft_tot_pacific_v',
+    'dr_ft_tot_white_v', 'dr_ft_tot_hisp_v', 'dr_ft_tot_multi_v', 'dr_ft_tot_unk_v', 'dr_ft_tot_forgn_v',
+
+    'dr_ft_men_black_v', 'dr_ft_men_indian_v', 'dr_ft_men_asian_v', 'dr_ft_men_pacific_v',
+    'dr_ft_men_white_v', 'dr_ft_men_hisp_v', 'dr_ft_men_multi_v', 'dr_ft_men_unk_v', 'dr_ft_men_forgn_v',
+
+    'dr_ft_wmen_black_v', 'dr_ft_wmen_indian_v', 'dr_ft_wmen_asian_v', 'dr_ft_wmen_pacific_v',
+    'dr_ft_wmen_white_v', 'dr_ft_wmen_hisp_v', 'dr_ft_wmen_multi_v', 'dr_ft_wmen_unk_v', 'dr_ft_wmen_forgn_v',
+
+    # ---- Doctoral first-year breakdowns ----
+    'dr_ft_frst_tot_black_v', 'dr_ft_frst_tot_indian_v', 'dr_ft_frst_tot_asian_v',
+    'dr_ft_frst_tot_pacific_v', 'dr_ft_frst_tot_white_v', 'dr_ft_frst_tot_hisp_v',
+    'dr_ft_frst_tot_multi_v', 'dr_ft_frst_tot_unk_v', 'dr_ft_frst_tot_forgn_v',
+
+    'dr_ft_frst_men_black_v', 'dr_ft_frst_men_indian_v', 'dr_ft_frst_men_asian_v',
+    'dr_ft_frst_men_pacific_v', 'dr_ft_frst_men_white_v', 'dr_ft_frst_men_hisp_v',
+    'dr_ft_frst_men_multi_v', 'dr_ft_frst_men_unk_v', 'dr_ft_frst_men_forgn_v',
+    'dr_ft_frst_men_all_races_v',
+
+    'dr_ft_frst_wmen_black_v', 'dr_ft_frst_wmen_indian_v', 'dr_ft_frst_wmen_asian_v',
+    'dr_ft_frst_wmen_pacific_v', 'dr_ft_frst_wmen_white_v', 'dr_ft_frst_wmen_hisp_v',
+    'dr_ft_frst_wmen_multi_v', 'dr_ft_frst_wmen_unk_v', 'dr_ft_frst_wmen_forgn_v',
+    'dr_ft_frst_wmen_all_races_v',
 ]
+
+
 
 # Container for all extra vars
 extra_maps = {v: {} for v in ADDITIONAL_VARS}
@@ -389,6 +444,53 @@ variable_bases = sorted(set(re.sub(r"_\d{4}$", "", c) for c in long_candidates))
 
 print(f"Found {len(variable_bases)} variable groups to melt into long format.")
 
+# ---------- convert wide to long including all variables ----------
+print("\nConverting wide table to long format...")
+
+# Ensure unique column names safely
+if wide_df.columns.duplicated().any():
+    print("⚠️ Duplicate column names detected — making them unique...")
+    wide_df.columns = pd.io.common.dedup_names(wide_df.columns)
+
+
+# Drop exact duplicate rows (sometimes UNITID repeated)
+wide_df = wide_df.drop_duplicates(subset=["UNITID"], keep="first").reset_index(drop=True)
+
+# Identify identifier and year columns
+id_vars = ["UNITID", "Institution_Name", "cipcodes_seen", "awlevels_seen"]
+
+# Find all columns that end with a year suffix (e.g. "_2020")
+long_candidates = [c for c in wide_df.columns if re.search(r"_\d{4}$", c)]
+
+# Extract variable base names
+variable_bases = sorted(set(re.sub(r"_\d{4}$", "", c) for c in long_candidates))
+
+print(f"Found {len(variable_bases)} variable groups to melt into long format.")
+
+# Safe melt using wide_to_long
+try:
+    long_df = pd.wide_to_long(
+        wide_df,
+        stubnames=variable_bases,
+        i="UNITID",
+        j="Year",
+        sep="_",
+        suffix=r"\d+"
+    ).reset_index()
+except Exception as e:
+    print("\n⚠️ wide_to_long failed; falling back to melt()")
+    # fallback to manual melt if still failing
+    long_df = (
+        wide_df.melt(id_vars=id_vars, var_name="Variable", value_name="Value")
+        .assign(Year=lambda d: d["Variable"].str.extract(r"_(\d{4})")[0].astype(float))
+        .assign(Variable=lambda d: d["Variable"].str.replace(r"_\d{4}$", "", regex=True))
+        .pivot_table(index=id_vars + ["Year"], columns="Variable", values="Value", aggfunc="first")
+        .reset_index()
+    )
+
+
+
+
 # Melt all at once using pandas.wide_to_long
 long_df = pd.wide_to_long(
     wide_df,
@@ -405,8 +507,9 @@ long_df["Year"] = pd.to_numeric(long_df["Year"], errors="coerce")
 # Sort neatly
 long_df = long_df.sort_values(["UNITID", "Year"]).reset_index(drop=True)
 
-# Replace blanks with NaN for clarity
-long_df.replace({0: np.nan, "": np.nan}, inplace=True)
+# Replace empty strings only (keep numeric zeros)
+long_df.replace({"": np.nan, " ": np.nan}, inplace=True)
+
 
 # ---------- meta sheet ----------
 meta_df = pd.DataFrame(meta_rows).sort_values(by=["unitid", "year", "source"])
