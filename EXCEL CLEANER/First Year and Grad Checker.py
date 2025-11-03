@@ -107,9 +107,6 @@
     ]
 '''   
 
-# ISSUE SOMETHING IS WRONG WITH RACE/SEX VARIABLES WHERE THE NUMBERS DONT ALIGN
-# EX ROW 95 dr_ft should be 6 not 831 figure out whats going on
-
 # ================================================================
 # FIRST YEAR & GRAD CHECKER — WIDE TABLE MERGED BY UNITID
 # ================================================================

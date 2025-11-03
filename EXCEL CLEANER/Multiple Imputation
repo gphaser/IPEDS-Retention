@@ -1,22 +1,324 @@
-#'''
-from sklearn.experimental import enable_iterative_imputer  # noqa
-from sklearn.impute import IterativeImputer
-import pandas as pd
+# Base code that works well for the individual
+''' 
+# want to apply this to file path /Users/co25936/Desktop/PER/IPEDS/complete_with_offsets_and_PA_noIPEDS_noAvg.xlsx
+
 import numpy as np
+import pandas as pd
+from sklearn.experimental import enable_iterative_imputer
+from sklearn.impute import IterativeImputer
+import matplotlib.pyplot as plt
 
-# Example dataset
-df = pd.DataFrame({
+# Original data
+data = {
     'PhD': [1, 1, 1, 1, np.nan, 2, 1, 3, np.nan, 1, 1, 1, 3, 6, 6, 2, 1, 1, 2, 2, 6, 4, 3, 2],
-    'First year': [2, 5, 0, 4, 2, 0, 0, 8, 9, 4, 3, 3, 3, 2, 6, 2, 3, 4, 4, 3, 2, 6, 3, 5]
-})
+    'First_year': [2, 5, 0, 4, 2, 0, 0, 8, 9, 4, 3, 3, 3, 2, 6, 2, 3, 4, 4, 3, 2, 6, 3, 5]
+}
 
-# Define the imputer
-imputer = IterativeImputer(random_state=0, max_iter=10)
+df = pd.DataFrame(data)
+print("Original Data:")
+print(df)
+print(f"\nMissing values: PhD = {df['PhD'].isna().sum()}")
 
-# Fit and transform
-imputed = imputer.fit_transform(df)
-df_imputed = pd.DataFrame(np.round(imputed).astype(int), columns=df.columns)
+# ============================================================
+# STEP 1: Perform MICE Imputation (Multiple Imputation)
+# ============================================================
+print("\n" + "="*60)
+print("PERFORMING MICE IMPUTATION")
+print("="*60)
 
+# Create MICE imputer
+# max_iter: number of imputation rounds
+# random_state: for reproducibility
+mice_imputer = IterativeImputer(
+    max_iter=10,
+    random_state=42,
+    min_value=0  # PhDs can't be negative
+)
+
+# Perform imputation - returns continuous values
+imputed_data = mice_imputer.fit_transform(df)
+df_imputed = pd.DataFrame(imputed_data, columns=['PhD', 'First_year'])
+
+print("\nImputed Data (before rounding):")
 print(df_imputed)
 
+# ============================================================
+# STEP 2: Round to Whole Numbers
+# ============================================================
+print("\n" + "="*60)
+print("ROUNDING TO WHOLE NUMBERS")
+print("="*60)
 
+df_imputed['PhD'] = np.round(df_imputed['PhD']).astype(int)
+df_imputed['First_year'] = np.round(df_imputed['First_year']).astype(int)
+
+print("\nImputed Data (after rounding):")
+print(df_imputed)
+print(f"\nImputed PhD values at indices 4 and 8: {df_imputed.loc[[4, 8], 'PhD'].values}")
+
+# ============================================================
+# STEP 3: Calculate PCR
+# PCR = (PhD(n+5) + PhD(n+6) + PhD(n+7)) / (First_year(n-1) + First_year(n) + First_year(n+1))
+# ============================================================
+print("\n" + "="*60)
+print("CALCULATING PCR")
+print("="*60)
+
+def calculate_pcr(df, index):
+    """
+    Calculate PCR for a given index n.
+    Returns PCR value or None if data is incomplete.
+    """
+    # Check if all required indices exist
+    phd_indices = [index + 5, index + 6, index + 7]
+    first_year_indices = [index - 1, index, index + 1]
+    
+    # Check bounds
+    if (min(first_year_indices) < 0 or 
+        max(phd_indices) >= len(df)):
+        return None
+    
+    # Get values
+    phd_sum = df.loc[phd_indices, 'PhD'].sum()
+    first_year_sum = df.loc[first_year_indices, 'First_year'].sum()
+    
+    # Avoid division by zero
+    if first_year_sum == 0:
+        return None
+    
+    pcr = phd_sum / first_year_sum
+    return pcr
+
+# Calculate PCR for all valid indices
+pcr_results = []
+for n in range(len(df_imputed)):
+    pcr = calculate_pcr(df_imputed, n)
+    if pcr is not None:
+        pcr_results.append({
+            'index_n': n,
+            'PhD_sum': df_imputed.loc[[n+5, n+6, n+7], 'PhD'].sum(),
+            'First_year_sum': df_imputed.loc[[n-1, n, n+1], 'First_year'].sum(),
+            'PCR': pcr
+        })
+
+pcr_df = pd.DataFrame(pcr_results)
+
+print("\nPCR Calculations:")
+print(pcr_df.to_string(index=False))
+
+# ============================================================
+# STEP 4: Summary Statistics
+# ============================================================
+print("\n" + "="*60)
+print("SUMMARY STATISTICS")
+print("="*60)
+
+print(f"\nTotal valid PCR calculations: {len(pcr_df)}")
+print(f"Mean PCR: {pcr_df['PCR'].mean():.4f}")
+print(f"Median PCR: {pcr_df['PCR'].median():.4f}")
+print(f"Std Dev PCR: {pcr_df['PCR'].std():.4f}")
+print(f"Min PCR: {pcr_df['PCR'].min():.4f}")
+print(f"Max PCR: {pcr_df['PCR'].max():.4f}")
+
+# ============================================================
+# STEP 5: Visualization
+# ============================================================
+fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+
+# Plot 1: Original vs Imputed PhD values
+axes[0, 0].plot(df.index, df['PhD'], 'o-', label='Original', markersize=8)
+axes[0, 0].plot(df_imputed.index, df_imputed['PhD'], 's--', label='Imputed', alpha=0.7, markersize=6)
+axes[0, 0].set_xlabel('Index')
+axes[0, 0].set_ylabel('PhD Count')
+axes[0, 0].set_title('PhD Values: Original vs Imputed')
+axes[0, 0].legend()
+axes[0, 0].grid(True, alpha=0.3)
+
+# Highlight imputed values
+imputed_indices = df[df['PhD'].isna()].index
+for idx in imputed_indices:
+    axes[0, 0].axvline(x=idx, color='red', alpha=0.3, linestyle='--', linewidth=1)
+    axes[0, 0].text(idx, axes[0, 0].get_ylim()[1]*0.9, 'Imputed', 
+                    rotation=90, va='top', fontsize=8, color='red')
+
+# Plot 2: First Year values
+axes[0, 1].plot(df_imputed.index, df_imputed['First_year'], 'o-', color='green', markersize=8)
+axes[0, 1].set_xlabel('Index')
+axes[0, 1].set_ylabel('First Year Count')
+axes[0, 1].set_title('First Year Student Counts')
+axes[0, 1].grid(True, alpha=0.3)
+
+# Plot 3: PCR values over valid indices
+axes[1, 0].plot(pcr_df['index_n'], pcr_df['PCR'], 'o-', color='purple', markersize=8)
+axes[1, 0].axhline(y=pcr_df['PCR'].mean(), color='red', linestyle='--', 
+                   label=f'Mean = {pcr_df["PCR"].mean():.3f}')
+axes[1, 0].set_xlabel('Index n')
+axes[1, 0].set_ylabel('PCR')
+axes[1, 0].set_title('PhD Completion Rate (PCR) by Index')
+axes[1, 0].legend()
+axes[1, 0].grid(True, alpha=0.3)
+
+# Plot 4: PCR distribution
+axes[1, 1].hist(pcr_df['PCR'], bins=10, color='skyblue', edgecolor='black', alpha=0.7)
+axes[1, 1].axvline(x=pcr_df['PCR'].mean(), color='red', linestyle='--', 
+                   linewidth=2, label=f'Mean = {pcr_df["PCR"].mean():.3f}')
+axes[1, 1].set_xlabel('PCR Value')
+axes[1, 1].set_ylabel('Frequency')
+axes[1, 1].set_title('Distribution of PCR Values')
+axes[1, 1].legend()
+axes[1, 1].grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.savefig('mice_pcr_analysis.png', dpi=300, bbox_inches='tight')
+print("\n✓ Visualization saved as 'mice_pcr_analysis.png'")
+plt.show()
+
+# ============================================================
+# STEP 6: Export Results
+# ============================================================
+print("\n" + "="*60)
+print("EXPORTING RESULTS")
+print("="*60)
+
+# Create comprehensive output
+output_df = df_imputed.copy()
+output_df['PhD_original'] = df['PhD']
+output_df['PhD_imputed'] = df_imputed['PhD']
+output_df['was_imputed'] = df['PhD'].isna()
+
+# Save to Excel
+with pd.ExcelWriter('mice_imputation_results.xlsx', engine='openpyxl') as writer:
+    output_df.to_excel(writer, sheet_name='Imputed_Data', index=True)
+    pcr_df.to_excel(writer, sheet_name='PCR_Results', index=False)
+
+print("✓ Results saved to 'mice_imputation_results.xlsx'")
+print("\nDone!")
+
+'''
+# New code to work on the data file
+
+import numpy as np
+import pandas as pd
+from sklearn.experimental import enable_iterative_imputer  # noqa
+from sklearn.impute import IterativeImputer
+import matplotlib.pyplot as plt
+import os
+
+# ============================================================
+# STEP 0: Load your Excel file
+# ============================================================
+file_path = "/Users/co25936/Desktop/PER/IPEDS/complete_with_offsets_and_PA_noIPEDS_noAvg.xlsx"
+
+# Read Excel
+df = pd.read_excel(file_path)
+
+# Display columns to verify names
+print("Columns in file:\n", df.columns.tolist())
+
+# Adjust these names if your Excel uses slightly different column headers
+phd_col = "CTOTALT"
+first_year_col = "first"
+
+# Confirm the data subset
+df_subset = df[[phd_col, first_year_col]].copy()
+print("\nOriginal data (first few rows):")
+print(df_subset.head())
+print(f"\nMissing values in '{phd_col}': {df_subset[phd_col].isna().sum()}")
+print(f"Missing values in '{first_year_col}': {df_subset[first_year_col].isna().sum()}")
+
+# ============================================================
+# STEP 1: Perform MICE Imputation
+# ============================================================
+print("\n" + "="*60)
+print("PERFORMING MICE IMPUTATION")
+print("="*60)
+
+mice_imputer = IterativeImputer(
+    max_iter=10,
+    random_state=42,
+    min_value=0
+)
+
+imputed_data = mice_imputer.fit_transform(df_subset)
+df_imputed = pd.DataFrame(imputed_data, columns=[phd_col, first_year_col])
+
+# ============================================================
+# STEP 2: Round to Whole Numbers
+# ============================================================
+df_imputed[phd_col] = np.round(df_imputed[phd_col]).astype(int)
+df_imputed[first_year_col] = np.round(df_imputed[first_year_col]).astype(int)
+
+# ============================================================
+# STEP 3: PCR Calculation
+# ============================================================
+def calculate_pcr(df, index):
+    phd_indices = [index + 5, index + 6, index + 7]
+    first_year_indices = [index - 1, index, index + 1]
+    if (min(first_year_indices) < 0 or max(phd_indices) >= len(df)):
+        return None
+    phd_sum = df.loc[phd_indices, phd_col].sum()
+    first_year_sum = df.loc[first_year_indices, first_year_col].sum()
+    if first_year_sum == 0:
+        return None
+    return phd_sum / first_year_sum
+
+pcr_results = []
+for n in range(len(df_imputed)):
+    pcr = calculate_pcr(df_imputed, n)
+    if pcr is not None:
+        pcr_results.append({
+            'index_n': n,
+            'PhD_sum': df_imputed.loc[[n+5, n+6, n+7], phd_col].sum(),
+            'First_year_sum': df_imputed.loc[[n-1, n, n+1], first_year_col].sum(),
+            'PCR': pcr
+        })
+
+pcr_df = pd.DataFrame(pcr_results)
+
+# ============================================================
+# STEP 4: Visualization
+# ============================================================
+fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+
+axes[0, 0].plot(df_subset.index, df_subset[phd_col], 'o-', label='Original', markersize=8)
+axes[0, 0].plot(df_imputed.index, df_imputed[phd_col], 's--', label='Imputed', alpha=0.7, markersize=6)
+axes[0, 0].legend()
+axes[0, 0].set_title('PhD Values: Original vs Imputed')
+
+axes[0, 1].plot(df_imputed.index, df_imputed[first_year_col], 'o-', color='green', markersize=8)
+axes[0, 1].set_title('First Year Student Counts')
+
+axes[1, 0].plot(pcr_df['index_n'], pcr_df['PCR'], 'o-', color='purple', markersize=8)
+axes[1, 0].axhline(y=pcr_df['PCR'].mean(), color='red', linestyle='--', label=f'Mean = {pcr_df["PCR"].mean():.3f}')
+axes[1, 0].legend()
+axes[1, 0].set_title('PhD Completion Rate (PCR) by Index')
+
+axes[1, 1].hist(pcr_df['PCR'], bins=10, color='skyblue', edgecolor='black', alpha=0.7)
+axes[1, 1].axvline(x=pcr_df['PCR'].mean(), color='red', linestyle='--', linewidth=2, label=f'Mean = {pcr_df["PCR"].mean():.3f}')
+axes[1, 1].legend()
+axes[1, 1].set_title('Distribution of PCR Values')
+
+plt.tight_layout()
+
+# Save visualization
+output_dir = os.path.dirname(file_path)
+plot_path = os.path.join(output_dir, "mice_pcr_analysis.png")
+plt.savefig(plot_path, dpi=300, bbox_inches='tight')
+plt.show()
+print(f"\n✓ Visualization saved as {plot_path}")
+
+# ============================================================
+# STEP 5: Export Results
+# ============================================================
+output_df = df_imputed.copy()
+output_df[f'{phd_col}_original'] = df_subset[phd_col]
+output_df[f'{phd_col}_imputed'] = df_imputed[phd_col]
+output_df['was_imputed'] = df_subset[phd_col].isna()
+
+output_file = os.path.join(output_dir, "mice_imputation_results.xlsx")
+with pd.ExcelWriter(output_file, engine='openpyxl') as writer:
+    output_df.to_excel(writer, sheet_name='Imputed_Data', index=True)
+    pcr_df.to_excel(writer, sheet_name='PCR_Results', index=False)
+
+print(f"✓ Results saved to '{output_file}'")
+print("\nDone!")
