@@ -2,20 +2,27 @@
 import os
 import pandas as pd
 
-folder_path = "/Users/co25936/Desktop/PER/IPEDS/Excel Files GSS/"  # Ensure path is correctly formatted
+folder_path = "/Users/co25936/Desktop/PER/IPEDS/Excel Files GSS/Untrimmed GSS/"  # Ensure path is correctly formatted
 
 # Columns you want to keep
 selected_columns = [
     "UNITID", "gss_code", 
     "ft_tot_all_races_v", "ft_tot_forgn_v", "ft_frst_tot_all_races_v", 
     "ft_men_all_races_v", "ft_wmen_all_races_v", "ft_frst_men_all_races_v", "ft_frst_wmen_all_races_v",
-    "ma_ft_men_all_races_v", "ma_ft_wmen_all_races_v", "ma_ft_tot_all_races_v", 
-    "dr_ft_men_all_races_v", "dr_ft_wmen_all_races_v", "dr_ft_tot_all_races_v",
+    "ma_ft_tot_all_races_v", "dr_ft_tot_all_races_v",
     "ma_ft_frst_tot_all_races_v", "dr_ft_frst_tot_all_races_v", 
+
+    #Sex enrollment inital
+    "dr_ft_frst_men_all_races_v", "dr_ft_frst_wmen_all_races_v",
+    "ma_ft_frst_men_all_races_v", "ma_ft_frst_wmen_all_races_v",
+    #Sex entrollment total
+    "dr_ft_men_all_races_v", "dr_ft_wmen_all_races_v",
+    "ma_ft_men_all_races_v", "ma_ft_wmen_all_races_v",
+   
 
     # Racial/Ethnic breakdowns - Total Enrollment
     "ft_tot_black_v", "ft_tot_indian_v", "ft_tot_asian_v", "ft_tot_pacific_v",
-    "ft_tot_white_v", "ft_tot_hisp_v", "ft_tot_multi_v", "ft_tot_unk_v", "ft_tot_forTgn_v",
+    "ft_tot_white_v", "ft_tot_hisp_v", "ft_tot_multi_v", "ft_tot_unk_v", "ft_tot_forgn_v",
     
     # Racial/Ethnic breakdowns - First-Year Enrollment
     "ft_frst_tot_black_v", "ft_frst_tot_indian_v", "ft_frst_tot_asian_v", "ft_frst_tot_pacific_v",

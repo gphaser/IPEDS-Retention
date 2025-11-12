@@ -19,12 +19,17 @@ filtered_df = df_trimmed[df_trimmed['AWLEVEL'] == 17][[
     'UNITID', 'Year', 'AWLEVEL',
     'ft_tot_all_races_v', 'ft_frst_tot_all_races_v',
     'CTOTALT', 'CTOTALM', 'CTOTALW',
-    'ma_ft_men_all_races_v', 'ma_ft_wmen_all_races_v', 'ma_ft_tot_all_races_v',
-    'dr_ft_men_all_races_v', 'dr_ft_wmen_all_races_v', 'dr_ft_tot_all_races_v',
+    'ma_ft_tot_all_races_v','dr_ft_tot_all_races_v',
     'ma_ft_frst_tot_all_races_v', 'dr_ft_frst_tot_all_races_v', 
 
     #Sex Breakdown- First time enrollment 
     'ft_frst_men_all_races_v', 'ft_frst_wmen_all_races_v',
+    "dr_ft_frst_men_all_races_v", "dr_ft_frst_wmen_all_races_v",
+    "ma_ft_frst_men_all_races_v", "ma_ft_frst_wmen_all_races_v",
+    #Sex breakdown - entrollment total
+    'ft_men_all_races_v', 'ft_wmen_all_races_v',
+    "dr_ft_men_all_races_v", "dr_ft_wmen_all_races_v",
+    "ma_ft_men_all_races_v", "ma_ft_wmen_all_races_v",
      
      # Racial/Ethnic breakdowns - Total Enrollment
     "ft_tot_black_v", "ft_tot_indian_v", "ft_tot_asian_v", "ft_tot_pacific_v",
@@ -292,7 +297,12 @@ filtered_df = df_trimmed[df_trimmed['AWLEVEL'] == 17][[
 
     #Sex Breakdown- First time enrollment 
     'ft_frst_men_all_races_v', 'ft_frst_wmen_all_races_v',
-     
+    'ma_ft_frst_men_all_races_v','dr_ft_frst_men_all_races_v',
+    #Sex Breakdown - Full time enrollment
+    'ft_men_all_races_v', 'ft_wmen_all_races_v',
+    'ma_ft_men_all_races_v','dr_ft_men_all_races_v',
+
+
      # Racial/Ethnic breakdowns - Total Enrollment
     "ft_tot_black_v", "ft_tot_indian_v", "ft_tot_asian_v", "ft_tot_pacific_v",
     "ft_tot_white_v", "ft_tot_hisp_v", "ft_tot_multi_v", "ft_tot_unk_v", "ft_tot_forgn_v",

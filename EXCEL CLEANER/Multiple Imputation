@@ -322,3 +322,347 @@ with pd.ExcelWriter(output_file, engine='openpyxl') as writer:
 
 print(f"✓ Results saved to '{output_file}'")
 print("\nDone!")
+
+
+# ok now instead of putitng the imputed data into its own unique file i want to make a new version of "/Users/co25936/Desktop/PER/IPEDS/complete_with_offsets_and_PA_noIPEDS_noAvg.xlsx" called "complete_with_imputation"
+# we want this file to have the imputed data replace the original columns "CTOTALT" and "first" to give us a complete data set to work with and make graphs
+# Want graphs from 2010 and on for the following MEN, WOMEN	,men Doctor, women Doctor, men masters, women masters, WHITE, ASIAN, BLACK, HISPANIC
+#  Want both retention and PCR graphs
+# retention calculated by (Students left after graduation - new students)/ (Students at the start)
+#   So retention = (total (year) + completions(year) - first years(year) / Total (year-1))
+# I THINK NEED TO CHECK THIS EQ
+# PCR calculated buy # Calculate PCR using sums (not averages of ratios)
+    #yearly_totals["PCR_value_total"] = (
+    #(yearly_totals["grad_plus_5"] + yearly_totals["grad_plus_6"] + yearly_totals["grad_plus_7"]) /
+    #(yearly_totals["first_minus_1"] + yearly_totals["first"] + yearly_totals["first_plus_1"])
+#   )
+
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+from sklearn.experimental import enable_iterative_imputer  # noqa
+from sklearn.impute import IterativeImputer
+
+# ==============================================================
+# STEP 1: Load and Impute Missing Values
+# ==============================================================
+
+input_path = "/Users/co25936/Desktop/PER/IPEDS/complete_with_offsets_and_PA_noIPEDS_noAvg.xlsx"
+output_path = "/Users/co25936/Desktop/PER/IPEDS/complete_with_imputation.xlsx"
+graph_dir = os.path.join(os.path.dirname(output_path), "graphs")
+os.makedirs(graph_dir, exist_ok=True)
+
+# Load data
+df = pd.read_excel(input_path)
+df.columns = df.columns.str.strip().str.lower()
+
+# Ensure required columns
+required_cols = ["ctotalt", "first"]
+if not set(required_cols).issubset(df.columns):
+    raise ValueError("Missing required columns: 'CTOTALT' and/or 'first'.")
+
+# Impute missing values for CTOTALT and first
+imputer = IterativeImputer(random_state=42, max_iter=10, min_value=0)
+impute_data = df[required_cols].copy()
+imputed_values = imputer.fit_transform(impute_data)
+# ROUND THE IMPUTED VALUES TO BE WHOLE NUMBERS
+df_imputed = pd.DataFrame(np.round(imputed_values).astype(int), columns=required_cols)
+df[required_cols] = df_imputed
+
+df.to_excel(output_path, index=False)
+print(f" MICE imputation complete. Saved file: {output_path}")
+
+# ==============================================================
+# STEP 2: Filter for 2010–2023
+# ==============================================================
+
+if "year" not in df.columns:
+    raise ValueError("Column 'year' not found in dataset.")
+
+df = df[(df["year"] >= 2010) & (df["year"] <= 2023)].copy()
+
+import pandas as pd
+import numpy as np
+import os
+
+# ==============================================================
+# Updated Categories with Total Variables
+# ==============================================================
+categories = {
+    "Total": {
+        "comp": "ctotalt", 
+        "first": "ft_frst_tot_all_races_v",
+        "total": "ft_tot_all_races_v"
+    },
+    "Men": {
+        "comp": "ctotalm", 
+        "first": "ft_frst_men_all_races_v",
+        "total": "ft_men_all_races_v"
+    },
+    "Women": {
+        "comp": "ctotalw", 
+        "first": "ft_frst_wmen_all_races_v",
+        "total": "ft_wmen_all_races_v"
+    },
+    'Doctors': {
+        "comp": "ctotalt", 
+        "first": "dr_ft_frst_tot_all_races_v",
+        "total": "dr_ft_tot_all_races_v",
+        "awlevl": [9, 17]
+    },
+    "Men Doctor": {
+        "comp": "ctotalm", 
+        "first": "dr_ft_frst_men_all_races_v",
+        "total": "dr_ft_men_all_races_v",
+        "awlevl": [9, 17]
+    },
+    "Women Doctor": {
+        "comp": "ctotalw", 
+        "first": "dr_ft_frst_wmen_all_races_v",
+        "total": "dr_ft_wmen_all_races_v",
+        "awlevl": [9, 17]
+    },
+    "Men Masters": {
+        "comp": "ctotalm", 
+        "first": "ma_ft_frst_men_all_races_v",
+        "total": "ma_ft_men_all_races_v",
+        "awlevl": [7]
+    },
+    "Women Masters": {
+        "comp": "ctotalw", 
+        "first": "ma_ft_frst_wmen_all_races_v",
+        "total": "ma_ft_wmen_all_races_v",
+        "awlevl": [7]
+    },
+    "White": {
+        "comp": "cwhitt", 
+        "first": "ft_frst_tot_white_v",
+        "total": "ft_tot_white_v"
+    },
+    "Asian": {
+        "comp": "casiat", 
+        "first": "ft_frst_tot_asian_v",
+        "total": "ft_tot_asian_v"
+    },
+    "Black": {
+        "comp": "cbkaat", 
+        "first": "ft_frst_tot_black_v",
+        "total": "ft_tot_black_v"
+    },
+    "Hispanic": {
+        "comp": "chispt", 
+        "first": "ft_frst_tot_hisp_v",
+        "total": "ft_tot_hisp_v"
+    },
+}
+
+# ==============================================================
+# Helper Function
+# ==============================================================
+def safe_divide(a, b):
+    """Avoid divide-by-zero issues."""
+    return np.where(b != 0, a / b, np.nan)
+
+# ==============================================================
+# Calculate PCR and Retention with Correct Formulas (National Level)
+# ==============================================================
+
+# Current issue the retention value is weird for Droctoral specifcly 
+def calculate_pcr_retention(df, categories, graph_dir):
+    """
+    Calculate PCR and Retention at the national level with correct multi-year formulas:
+    
+    PCR(year) = [sum of all comp(year+5) + comp(year+6) + comp(year+7)] / 
+                [sum of all first(year-1) + first(year) + first(year+1)]
+    
+    Retention(year) = [sum of all total(year) + comp(year) - first(year)] / 
+                      [sum of all total(year-1)]
+    """
+    
+    # Normalize column names
+    df.columns = df.columns.str.lower()
+    
+    results = []
+    
+    for label, info in categories.items():
+        comp_col = info["comp"].lower()
+        first_col = info["first"].lower()
+        total_col = info["total"].lower()
+        awlevl_filter = info.get("awlevl", None)
+        
+        # Check presence
+        if comp_col not in df.columns or first_col not in df.columns or total_col not in df.columns:
+            print(f"Skipping {label}: missing data columns.")
+            continue
+        
+        temp = df.copy()
+        
+        # Apply AWLEVL filter if applicable
+        if awlevl_filter and "awlevl" in temp.columns:
+            temp = temp[temp["awlevl"].isin(awlevl_filter)]
+        
+        # Group by year, summing across ALL institutions
+        national_totals = temp.groupby("year", as_index=False).agg({
+            comp_col: "sum",
+            first_col: "sum",
+            total_col: "sum"
+        })
+        
+        # Sort by year
+        national_totals = national_totals.sort_values("year")
+        
+        # Calculate PCR and Retention at national level
+        pcr_data = []
+        
+        for idx, row in national_totals.iterrows():
+            year = row["year"]
+            
+            # PCR: Get completions for year+5, year+6, year+7
+            comp_5 = national_totals[national_totals["year"] == year + 5][comp_col].sum()
+            comp_6 = national_totals[national_totals["year"] == year + 6][comp_col].sum()
+            comp_7 = national_totals[national_totals["year"] == year + 7][comp_col].sum()
+            total_comp = comp_5 + comp_6 + comp_7
+            
+            # PCR: Get first-years for year-1, year, year+1
+            first_m1 = national_totals[national_totals["year"] == year - 1][first_col].sum()
+            first_0 = national_totals[national_totals["year"] == year][first_col].sum()
+            first_p1 = national_totals[national_totals["year"] == year + 1][first_col].sum()
+            total_first = first_m1 + first_0 + first_p1
+            
+            # Calculate PCR
+            pcr = total_comp / total_first if total_first > 0 else np.nan
+            
+            # Retention: [total(year) + comp(year) - first(year)] / total(year-1)
+            total_current = row[total_col]
+            comp_current = row[comp_col]
+            first_current = row[first_col]
+            
+            total_prev = national_totals[national_totals["year"] == year - 1][total_col].sum()
+            
+            if total_prev > 0:
+                retention = (total_current + comp_current - first_current) / total_prev
+            else:
+                retention = np.nan
+            
+            pcr_data.append({
+                "year": year,
+                "pcr": pcr,
+                "retention": retention,
+                "category": label,
+                "total_completions": total_comp,
+                "total_first_years": total_first,
+                "total_enrolled": total_current
+            })
+        
+        if pcr_data:
+            results.append(pd.DataFrame(pcr_data))
+    
+    # Combine all results
+    if not results:
+        print("No results to combine.")
+        return None
+    
+    final_df = pd.concat(results, ignore_index=True)
+    
+    # Save national-level results
+    summary_path = os.path.join(graph_dir, "PCR_Retention_National.xlsx")
+    final_df.to_excel(summary_path, index=False)
+    print(f"National-level results saved: {summary_path}")
+    
+    return final_df
+
+
+
+# ==============================================================
+# STEP 4: Run PCR & Retention Calculations
+# ==============================================================
+
+final_df = calculate_pcr_retention(df, categories, graph_dir)
+
+# ==============================================================
+# STEP 5: Graphs per Category
+# ==============================================================
+
+def create_category_graphs(results_df, graph_dir):
+    """
+    Create separate line graphs for PCR and Retention for each category.
+    PCR is shown for years 2011-2016 only.
+    Both metrics share the same y-axis scale.
+    """
+    import matplotlib.pyplot as plt
+    
+    categories = results_df["category"].unique()
+    
+    for category in categories:
+        # Filter data for this category
+        cat_data = results_df[results_df["category"] == category].sort_values("year")
+        
+        # Skip if no data
+        if cat_data.empty:
+            continue
+        
+        # Filter PCR data to 2011-2016
+        pcr_data = cat_data[(cat_data["year"] >= 2011) & (cat_data["year"] <= 2016)]
+        
+        # Create figure with single y-axis
+        fig, ax = plt.subplots(figsize=(12, 6))
+        
+        # Plot PCR (2011-2016 only)
+        if not pcr_data.empty:
+            ax.plot(pcr_data["year"], pcr_data["pcr"], 
+                   color='tab:blue', marker='o', linewidth=2, markersize=6, 
+                   label='PCR (2011-2016)')
+            
+            # Add values above PCR points
+            for idx, row in pcr_data.iterrows():
+                if not pd.isna(row["pcr"]):
+                    ax.text(row["year"], row["pcr"] + .01 , f'{row["pcr"]:.2%}',
+                           ha='center', va='bottom', fontsize=9, color='tab:blue',
+                           fontweight='bold')
+        
+        # Plot Retention (all years)
+        ax.plot(cat_data["year"], cat_data["retention"], 
+               color='tab:orange', marker='s', linewidth=2, markersize=6,
+               label='Retention')
+        
+        # Add values above Retention points
+        for idx, row in cat_data.iterrows():
+            if not pd.isna(row["retention"]):
+                ax.text(row["year"], row["retention"] + 0.01, f'{row["retention"]:.2%}',
+                       ha='center', va='bottom', fontsize=9, color='tab:orange',
+                       fontweight='bold')
+        # Labels and formatting
+        ax.set_xlabel('Year', fontsize=12)
+        ax.set_ylabel('Rate', fontsize=12)
+        ax.set_title(f'PCR and Retention Rates: {category}', 
+                    fontsize=14, fontweight='bold', pad=20)
+        ax.grid(True, alpha=0.3)
+        ax.legend(loc='best', fontsize=10)
+        
+        # Format x-axis to show years clearly
+        all_years = sorted(cat_data["year"].unique())
+        ax.set_xticks(all_years)
+        ax.set_xticklabels(all_years, rotation=45)
+        
+        # Set y-axis to percentage format if values are between 0 and 1
+        if cat_data["pcr"].max() <= 1 and cat_data["retention"].max() <= 1:
+            ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: '{:.0%}'.format(y)))
+        
+        # Adjust layout to prevent label cutoff
+        plt.tight_layout()
+        
+        # Save figure
+        safe_category = category.replace(" ", "_").replace("/", "_")
+        filepath = os.path.join(graph_dir, f"PCR_Retention_{safe_category}.png")
+        plt.savefig(filepath, dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        print(f"Graph saved: {filepath}")
+    
+    print(f"\nAll graphs saved to: {graph_dir}")
+
+#actualy run the code 
+create_category_graphs(final_df, graph_dir)
+
