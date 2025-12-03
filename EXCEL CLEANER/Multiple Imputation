@@ -207,7 +207,9 @@ import os
 # ============================================================
 # STEP 0: Load your Excel file
 # ============================================================
-file_path = "/Users/co25936/Desktop/PER/IPEDS/complete_with_offsets_and_PA_noIPEDS_noAvg.xlsx"
+file_path = '/Users/co25936/Desktop/PER/IPEDS/GSS_IPEDS_Combined_file.xlsx'
+
+# file_path = "/Users/co25936/Desktop/PER/IPEDS/complete_with_offsets_and_PA_noIPEDS_All_UNITIDS.xlsx"
 
 # Read Excel
 df = pd.read_excel(file_path)
@@ -217,7 +219,9 @@ print("Columns in file:\n", df.columns.tolist())
 
 # Adjust these names if your Excel uses slightly different column headers
 phd_col = "CTOTALT"
-first_year_col = "first"
+first_year_col = "ft_frst_tot_all_races_v"
+
+# first_year_col = "first"
 
 # Confirm the data subset
 df_subset = df[[phd_col, first_year_col]].copy()
@@ -349,7 +353,8 @@ from sklearn.impute import IterativeImputer
 # STEP 1: Load and Impute Missing Values
 # ==============================================================
 
-input_path = "/Users/co25936/Desktop/PER/IPEDS/complete_with_offsets_and_PA_noIPEDS_noAvg.xlsx"
+input_path = '/Users/co25936/Desktop/PER/IPEDS/GSS_IPEDS_Combined_file.xlsx'
+#input_path = "/Users/co25936/Desktop/PER/IPEDS/complete_with_offsets_and_PA_noIPEDS_All_UNITIDS.xlsx"
 output_path = "/Users/co25936/Desktop/PER/IPEDS/complete_with_imputation.xlsx"
 graph_dir = os.path.join(os.path.dirname(output_path), "graphs")
 os.makedirs(graph_dir, exist_ok=True)
@@ -358,8 +363,10 @@ os.makedirs(graph_dir, exist_ok=True)
 df = pd.read_excel(input_path)
 df.columns = df.columns.str.strip().str.lower()
 
+
 # Ensure required columns
-required_cols = ["ctotalt", "first"]
+required_cols = ["ctotalt"]
+# required_cols = ["ctotalt", "first"]
 if not set(required_cols).issubset(df.columns):
     raise ValueError("Missing required columns: 'CTOTALT' and/or 'first'.")
 
@@ -394,7 +401,7 @@ categories = {
     "Total": {
         "comp": "ctotalt", 
         "first": "ft_frst_tot_all_races_v",
-        "total": "ft_tot_all_races_v"
+        "total": "ft_tot_all_races_v",
     },
     "Men": {
         "comp": "ctotalm", 
@@ -410,31 +417,31 @@ categories = {
         "comp": "ctotalt", 
         "first": "dr_ft_frst_tot_all_races_v",
         "total": "dr_ft_tot_all_races_v",
-        "awlevl": [9, 17]
+        "awlevel": [9, 17]
     },
     "Men Doctor": {
         "comp": "ctotalm", 
         "first": "dr_ft_frst_men_all_races_v",
         "total": "dr_ft_men_all_races_v",
-        "awlevl": [9, 17]
+        "awlevel": [9, 17]
     },
     "Women Doctor": {
         "comp": "ctotalw", 
         "first": "dr_ft_frst_wmen_all_races_v",
         "total": "dr_ft_wmen_all_races_v",
-        "awlevl": [9, 17]
+        "awlevel": [9, 17]
     },
     "Men Masters": {
         "comp": "ctotalm", 
         "first": "ma_ft_frst_men_all_races_v",
         "total": "ma_ft_men_all_races_v",
-        "awlevl": [7]
+        "awlevel": [7]
     },
     "Women Masters": {
         "comp": "ctotalw", 
         "first": "ma_ft_frst_wmen_all_races_v",
         "total": "ma_ft_wmen_all_races_v",
-        "awlevl": [7]
+        "awlevel": [7]
     },
     "White": {
         "comp": "cwhitt", 
@@ -490,7 +497,7 @@ def calculate_pcr_retention(df, categories, graph_dir):
         comp_col = info["comp"].lower()
         first_col = info["first"].lower()
         total_col = info["total"].lower()
-        awlevl_filter = info.get("awlevl", None)
+        awlevel_filter = info.get("awlevel", None)
         
         # Check presence
         if comp_col not in df.columns or first_col not in df.columns or total_col not in df.columns:
@@ -499,9 +506,15 @@ def calculate_pcr_retention(df, categories, graph_dir):
         
         temp = df.copy()
         
-        # Apply AWLEVL filter if applicable
-        if awlevl_filter and "awlevl" in temp.columns:
-            temp = temp[temp["awlevl"].isin(awlevl_filter)]
+        # Apply awlevel filter if applicable
+        if awlevel_filter and "awlevel" in temp.columns:
+            temp = temp[temp["awlevel"].isin(awlevel_filter)]
+
+        # ADD THIS CHECK - Skip if filtering resulted in no data
+        if temp.empty:
+            print(f"Skipping {label}: no data after applying awlevel filter.")
+            continue
+
         
         # Group by year, summing across ALL institutions
         national_totals = temp.groupby("year", as_index=False).agg({
@@ -524,12 +537,15 @@ def calculate_pcr_retention(df, categories, graph_dir):
             comp_6 = national_totals[national_totals["year"] == year + 6][comp_col].sum()
             comp_7 = national_totals[national_totals["year"] == year + 7][comp_col].sum()
             total_comp = comp_5 + comp_6 + comp_7
+            total_year = national_totals[national_totals["year"] == year][comp_col].sum()
             
             # PCR: Get first-years for year-1, year, year+1
             first_m1 = national_totals[national_totals["year"] == year - 1][first_col].sum()
             first_0 = national_totals[national_totals["year"] == year][first_col].sum()
             first_p1 = national_totals[national_totals["year"] == year + 1][first_col].sum()
             total_first = first_m1 + first_0 + first_p1
+            
+            
             
             # Calculate PCR
             pcr = total_comp / total_first if total_first > 0 else np.nan
@@ -551,8 +567,8 @@ def calculate_pcr_retention(df, categories, graph_dir):
                 "pcr": pcr,
                 "retention": retention,
                 "category": label,
-                "total_completions": total_comp,
-                "total_first_years": total_first,
+                "total_completions": total_year,
+                "total_first_years": first_0,
                 "total_enrolled": total_current
             })
         

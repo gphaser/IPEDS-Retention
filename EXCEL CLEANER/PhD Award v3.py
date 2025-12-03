@@ -63,7 +63,7 @@ complete_df = all_years.merge(filtered_df, how='left', on=['UNITID', 'Year'])
 # Fill missing AWLEVEL with 17
 complete_df['AWLEVEL'] = complete_df['AWLEVEL'].fillna(17)
 
-# Fill missing values with NaN
+# Fill missing values with NaN``
 complete_df['ft_tot_all_races_v'] = complete_df['ft_tot_all_races_v'].fillna(np.nan)
 complete_df['ft_frst_tot_all_races_v'] = complete_df['ft_frst_tot_all_races_v'].fillna(np.nan)
 complete_df['CTOTALT'] = complete_df['CTOTALT'].fillna(np.nan)
