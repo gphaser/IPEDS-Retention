@@ -25,8 +25,8 @@ for year in range(2000, 2009):
                             # Racial breakdown, Black, Asian/Pacific islander, Hispanic, White, Unknown, Non-residental alien, Native American/Alaskin 
                             'CRACE18', 'CRACE20','CRACE21', 'CRACE22', 'CUNKNT', "CRACE17", "CRACE19",
                             "crace18", "crace20","crace21", "crace22", 'crace17', 'crace19',
-                            # Other racial breakdowns Black, Aisan, Native Hawian/Pacific islander Hispanic/Latino., White (Unknown is the same), 2 or more races, non-american students
-                            'CBKAAT','CASIAT','CNHPIT', 'CHISPT', 'CWHITT', 'C2MORT', 'CNRALT']
+                            # Other racial breakdowns Black, Aisan, Native Hawian/Pacific islander Hispanic/Latino., White, Unknown is the same, 2 or more races, non-american students
+                            'CBKAAT','CASIAT','CNHPIT', 'CHISPT', 'CWHITT','CUNKNT', 'C2MORT', 'CNRALT']
 
         df_filtered = filter_existing_columns(df, selected_columns, filename)
 

@@ -401,12 +401,14 @@ categories = {
     "Total": {
         "comp": "ctotalt", 
         "first": "ft_frst_tot_all_races_v",
-        "total": "ft_tot_all_races_v",
+        "total": "ft_tot_all_races_v"
+
     },
     "Men": {
         "comp": "ctotalm", 
         "first": "ft_frst_men_all_races_v",
         "total": "ft_men_all_races_v"
+
     },
     "Women": {
         "comp": "ctotalw", 
@@ -431,18 +433,6 @@ categories = {
         "total": "dr_ft_wmen_all_races_v",
         "awlevel": [9, 17]
     },
-    "Men Masters": {
-        "comp": "ctotalm", 
-        "first": "ma_ft_frst_men_all_races_v",
-        "total": "ma_ft_men_all_races_v",
-        "awlevel": [7]
-    },
-    "Women Masters": {
-        "comp": "ctotalw", 
-        "first": "ma_ft_frst_wmen_all_races_v",
-        "total": "ma_ft_wmen_all_races_v",
-        "awlevel": [7]
-    },
     "White": {
         "comp": "cwhitt", 
         "first": "ft_frst_tot_white_v",
@@ -463,7 +453,77 @@ categories = {
         "first": "ft_frst_tot_hisp_v",
         "total": "ft_tot_hisp_v"
     },
+    # additional ones
+   "Native Hawaiian /Pacific islander" : {
+        "comp": "cnhpit", 
+        "first": "ft_frst_tot_pacific_v",
+        "total": "ft_tot_pacific_v"
+    },
+    "2 or more"  : {
+        "comp": "c2mort", 
+        "first": "ft_frst_tot_multi_v",
+        "total": "ft_tot_multi_v"
+    },
+    "Unknown"  : {
+        "comp": "cunknt", 
+        "first": "ft_frst_tot_unk_v",
+        "total": "ft_tot_unk_v"
+    },
+    "Foreign"  : {
+        "comp": "cnralt", 
+        "first": "ft_frst_tot_forgn_v",
+        "total": "ft_tot_forgn_v"
+    },
+
+    "Black Women": {
+        "comp": "cbkaat", 
+        "first": "ft_frst_wmen_black_v",
+        "total": "ft_wmen_black_v"
+    },
+    "Asian Women": {
+        "comp": "casiat", 
+        "first": "ft_frst_wmen_asian_v",
+        "total": "ft_wmen_asian_v"
+    },
+    "Hispanic Women": {
+        "comp": "chispt", 
+        "first": "ft_frst_wmen_hisp_v",
+        "total": "ft_wmen_hisp_v"
+    },
 }
+    
+# REMOVED CATAGORIES  DUE TO ISSUES TO WORK ON IMPLEMENTATION
+''' REMOVED MASTERS AS THE EQUATION FOR RETENTION DOES NOT WORK DUE TO MASTER"S DEGREES EARENED NOT BEING TERMINAL DEGREES
+    "Men Masters": {
+        "comp": "ctotalm", 
+        "first": "ma_ft_frst_men_all_races_v",
+        "total": "ma_ft_men_all_races_v",
+        "awlevel": [7]
+    },
+    "Women Masters": {
+        "comp": "ctotalw", 
+        "first": "ma_ft_frst_wmen_all_races_v",
+        "total": "ma_ft_wmen_all_races_v",
+        "awlevel": [7]
+    },
+''' 
+
+'''  EXCLUDE IS HAVING ISSUES RN due to multi parts
+    "Non-White Women": {
+        "comp": ["cbkaat", "chispt", "casiat"],
+        "first": [
+            "ft_frst_wmen_hisp_v",
+            "ft_frst_wmen_asian_v",
+            "ft_frst_wmen_black_v"
+        ],
+        "total": [
+            "ft_wmen_black_v",
+            "ft_wmen_asian_v",
+            "ft_wmen_hisp_v"
+        ]
+    }
+}
+'''
 
 # ==============================================================
 # Helper Function
@@ -494,7 +554,7 @@ def calculate_pcr_retention(df, categories, graph_dir):
     results = []
     
     for label, info in categories.items():
-        comp_col = info["comp"].lower()
+        comp_col = info["comp"]
         first_col = info["first"].lower()
         total_col = info["total"].lower()
         awlevel_filter = info.get("awlevel", None)
