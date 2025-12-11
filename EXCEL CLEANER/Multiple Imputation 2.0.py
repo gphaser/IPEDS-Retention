@@ -585,6 +585,11 @@ df = df.apply(pd.to_numeric, errors="ignore")
 
 years = sorted(df["year"].unique())
 
+# Precompute non-duplicated enrollment + first-year values
+unique_first = df.drop_duplicates(subset=["unitid", "year"])[["unitid", "year"] + [col for col in df.columns if "_frst_" in col]]
+unique_total = df.drop_duplicates(subset=["unitid", "year"])[["unitid", "year"] + [col for col in df.columns if "_tot_" in col]]
+
+
 for cat_name, spec in categories.items():
 
     comp_var = spec["comp"]
@@ -601,9 +606,17 @@ for cat_name, spec in categories.items():
         # -------------------------------
         # FIRST YEAR AND ENROLLED
         # -------------------------------
+        # Remove duplicates by UNITID before summing
+        df_y_unique = df_y.drop_duplicates(subset=["unitid"])
+
+        first_sum = df_y_unique[first_var].sum() if first_var in df_y_unique else 0
+        total_sum = df_y_unique[total_var].sum() if total_var in df_y_unique else 0
+
+        '''
         first_sum = df_y[first_var].sum() if first_var in df_y else 0
         total_sum = df_y[total_var].sum() if total_var in df_y else 0
-
+        '''
+        
         # -------------------------------
         # AWARDS
         # -------------------------------
@@ -653,13 +666,15 @@ for cat_name, spec in categories.items():
         # -------------------------------
         # PCR (only uses PhD completions)
         # -------------------------------
-        
+
         # Define the first-year window
         first_years = [year-1, year, year+1]
 
         # Check if all years exist in the DataFrame
         if all(y in df["year"].values for y in first_years):
-            first_window = df[df["year"].isin(first_years)][first_var].sum()
+            # first_window = df[df["year"].isin(first_years)][first_var].sum()
+           # ALternative that may need to be used  dut to the fact that there are duplicate values for the ALL case 
+           first_window = df[df["year"].isin(first_years) & (df["awlevel"].isin([9,17]))][first_var].sum() 
         else:
             first_window = np.nan  # will prevent PCR calculation
 
@@ -680,7 +695,12 @@ for cat_name, spec in categories.items():
         # -------------------------------
         # Retention Rate (RR)
         # -------------------------------
-        total_prev = df[df["year"] == year-1][total_var].sum() if total_var in df else 0
+        # TK we need to only have 1 of the 2 possible outcums as there are duplicate values for Total and sum between the PhD and Masters programs
+        df_prev_unique = df[df["year"] == year-1].drop_duplicates(subset=["unitid"])
+        total_prev = df_prev_unique[total_var].sum() if total_var in df_prev_unique else 0
+
+        # total_prev = df[df["year"] == year-1][total_var].sum() if total_var in df else 0
+        
         rr = (total_sum + phd_awarded + masters_awarded - first_sum) / total_prev if total_prev > 0 else np.nan
 
         # -------------------------------
@@ -703,7 +723,6 @@ for cat_name, spec in categories.items():
             "enrolled": total_sum,
             "pcr": pcr,
             "rr": rr,
-            "category_name": cat_name
         })
 
 # -------------------------------
@@ -722,136 +741,3 @@ print(f"Tidy dataset saved to: {final_output}")
 
 
 
-''' 
-# ==============================================================
-# STEP 3: Build Excel Dataset
-# ==============================================================
-
-final_rows = []
-
-# Make sure numeric fields are numeric
-df = df.apply(pd.to_numeric, errors="ignore")
-
-years = sorted(df["year"].unique())
-
-for cat_name, spec in categories.items():
-
-    comp_var = spec["comp"]
-    first_var = spec["first"]
-    total_var = spec["total"]
-    awlevels = spec.get("awlevel", None)
-
-    # Filter to awards degree level (if applicable)
-    df_cat = df.copy()
-    if awlevels is not None:
-        df_cat = df_cat[df_cat["awlevel"].isin(awlevels)]
-
-    # Loop through each academic year
-    for year in years:
-
-        df_y = df_cat[df_cat["year"] == year]
-
-        # SUM each core variable
-        comp_sum = df_y[comp_var].sum() if comp_var in df_y else 0
-        first_sum = df_y[first_var].sum() if first_var in df_y else 0
-        total_sum = df_y[total_var].sum() if total_var in df_y else 0
-
-        # Determine degree type
-        if awlevels == [9, 17]:
-            degree_type = "PhD"
-        elif awlevels == [7]:
-            degree_type = "Masters"
-        else:
-            degree_type = "All"
-
-        # COMPUTE COMPLETIONS BASED ON DEGREE TYPE
-
-        if degree_type == "PhD":
-            # Only count completions in awlevel 9 or 17
-            comp_sum = df[(df["year"] == year) & (df["awlevel"].isin([9,17]))][comp_var].sum()
-            phd_awarded = comp_sum
-            masters_awarded = 0
-
-        elif degree_type == "Masters":
-            # Only count completions in awlevel 7
-            comp_sum = df[(df["year"] == year) & (df["awlevel"] == 7)][comp_var].sum()
-            masters_awarded = comp_sum
-            phd_awarded = 0
-
-        else:
-            # Degree = ALL → include ALL completions regardless of award level
-            comp_sum = df[df["year"] == year][comp_var].sum()
-            phd_awarded = df[(df["year"] == year) & (df["awlevel"].isin([9,17]))][comp_var].sum()
-            masters_awarded = df[(df["year"] == year) & (df["awlevel"] == 7)][comp_var].sum()
-
-
-        # Determine sex
-        if "_men_" in first_var:
-            sex = "Men"
-        elif "_wmen_" in first_var:
-            sex = "Women"
-        else:
-            sex = "All"
-
-        # Determine race
-        race_lookup = {
-            "white": "White",
-            "asian": "Asian",
-            "black": "Black",
-            "hisp": "Hispanic",
-            "pacific": "Pacific Islander",
-            "multi": "Two or More",
-            "unk": "Unknown",
-            "forgn": "Foreign"
-        }
-        race = "All"
-        for key, value in race_lookup.items():
-            if key in first_var:
-                race = value
-
-        # Compute PCR
-        # PCR(year) = comp(year+5 to year+7) / first(year-1 to year+1)
-        comp_future = df_cat[df_cat["year"].isin([year+5, year+6, year+7])][comp_var].sum() \
-                        if awlevels == [9, 17] else np.nan
-        first_window = df_cat[df_cat["year"].isin([year-1, year, year+1])][first_var].sum()
-        if first_window > 0:
-            pcr = comp_future / first_window
-        else:
-            pcr = np.nan
-
-        # Compute Retention Rate (RR)
-        df_prev_year = df_cat[df_cat["year"] == year - 1]
-        total_prev = df_prev_year[total_var].sum()
-        if total_prev > 0:
-            rr = (total_sum + comp_sum - first_sum) / total_prev
-        else:
-            rr = np.nan
-
-        # Skip all-zero rows
-        if comp_sum == 0 and first_sum == 0 and total_sum == 0:
-            continue
-
-        # Build row
-        final_rows.append({
-            "year": year,
-            "degree": degree_type,
-            "sex": sex,
-            "race": race,
-            "phd_awarded": phd_awarded,
-            "masters_awarded": masters_awarded,
-            "first_year": first_sum,
-            "enrolled": total_sum,
-            "pcr": pcr,
-            "rr": rr
-        })
-
-# Turn into DataFrame
-final_df = pd.DataFrame(final_rows)
-
-# ==============================================================
-# STEP 4: Save final tidy file
-# ==============================================================
-final_output = "/Users/co25936/Desktop/PER/IPEDS/PRC_National_dataset.xlsx"
-final_df.to_excel(final_output, index=False)
-print(f"Tidy dataset saved to: {final_output}")
-'''
