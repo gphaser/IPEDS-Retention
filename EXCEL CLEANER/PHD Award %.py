@@ -288,7 +288,7 @@ plt.show()
 print(f"Calculation complete. Results saved to '{results_file_path}' and dot plot saved as '{dot_plot_file_path}'.")
 
 
-'''
+
 
 # Save or display the result
 output_path = '/Users/co25936/Desktop/PER/IPEDS/merged_file_test.xlsx'
@@ -301,7 +301,7 @@ print(f'Merged file saved at: {output_path}')
 # INCLUDE NEW ROWS
 # TEST MATH
 
-
+'''
 
 
 
