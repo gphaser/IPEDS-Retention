@@ -71,7 +71,7 @@ categories = {
         "total": "ft_wmen_all_races_v",
         "awlevel": [7, 9, 17]
     },
-    'Doctors': {
+    'Doctor': {
         "comp": "ctotalt", 
         "first": "dr_ft_frst_tot_all_races_v",
         "total": "dr_ft_tot_all_races_v",
@@ -139,98 +139,98 @@ categories = {
         "awlevel": [7, 9, 17]
     },
     "White Men": {
-        "comp": "cwhitt", 
+        "comp": "cwhitm", 
         "first": "ft_frst_men_white_v",
         "total": "ft_men_white_v",
         "awlevel": [7, 9, 17]
     },
     "Asian Men": {
-        "comp": "casiat", 
+        "comp": "casiam", 
         "first": "ft_frst_men_asian_v",
         "total": "ft_men_asian_v",
         "awlevel": [7, 9, 17]
     },
     "Black Men": {
-        "comp": "cbkaat", 
+        "comp": "cbkaam", 
         "first": "ft_frst_men_black_v",
         "total": "ft_men_black_v",
         "awlevel": [7, 9, 17]
     },
     "Hispanic Men": {
-        "comp": "chispt", 
+        "comp": "chispm", 
         "first": "ft_frst_men_hisp_v",
         "total": "ft_men_hisp_v",
         "awlevel": [7, 9, 17]
     },
 
    "Native Hawaiian /Pacific islander Men" : {
-        "comp": "cnhpit", 
+        "comp": "cnhpim", 
         "first": "ft_frst_men_pacific_v",
         "total": "ft_men_pacific_v",
         "awlevel": [7, 9, 17]
     },
     "2 or more Men"  : {
-        "comp": "c2mort", 
+        "comp": "c2morm", 
         "first": "ft_frst_men_multi_v",
         "total": "ft_men_multi_v",
         "awlevel": [7, 9, 17]
     },
     "Unknown Men"  : {
-        "comp": "cunknt", 
+        "comp": "cunknm", 
         "first": "ft_frst_men_unk_v",
         "total": "ft_men_unk_v",
         "awlevel": [7, 9, 17]
     },
     "Foreign Men"  : {
-        "comp": "cnralt", 
+        "comp": "cnralm", 
         "first": "ft_frst_men_forgn_v",
         "total": "ft_men_forgn_v",
         "awlevel": [7, 9, 17]
     },
     "White Women": {
-        "comp": "cwhitt", 
+        "comp": "cwhitw", 
         "first": "ft_frst_wmen_white_v",
         "total": "ft_wmen_white_v",
         "awlevel": [7, 9, 17]
     },
     "Asian Women": {
-        "comp": "casiat", 
+        "comp": "casiaw", 
         "first": "ft_frst_wmen_asian_v",
         "total": "ft_wmen_asian_v",
         "awlevel": [7, 9, 17]
     },
     "Black Women": {
-        "comp": "cbkaat", 
+        "comp": "cbkaaw", 
         "first": "ft_frst_wmen_black_v",
         "total": "ft_wmen_black_v",
         "awlevel": [7, 9, 17]
     },
     "Hispanic Women": {
-        "comp": "chispt", 
+        "comp": "chispw", 
         "first": "ft_frst_wmen_hisp_v",
         "total": "ft_wmen_hisp_v",
         "awlevel": [7, 9, 17]
     },
    "Native Hawaiian /Pacific islander Women" : {
-        "comp": "cnhpit", 
+        "comp": "cnhpiw", 
         "first": "ft_frst_wmen_pacific_v",
         "total": "ft_wmen_pacific_v",
         "awlevel": [7, 9, 17]
     },
     "2 or more Women"  : {
-        "comp": "c2mort", 
+        "comp": "c2morw", 
         "first": "ft_frst_wmen_multi_v",
         "total": "ft_wmen_multi_v",
         "awlevel": [7, 9, 17]
     },
     "Unknown Women"  : {
-        "comp": "cunknt", 
+        "comp": "cunknw", 
         "first": "ft_frst_wmen_unk_v",
         "total": "ft_wmen_unk_v",
         "awlevel": [7, 9, 17]
     },
     "Foreign Women"  : {
-        "comp": "cnralt", 
+        "comp": "cnralw", 
         "first": "ft_frst_wmen_forgn_v",
         "total": "ft_wmen_forgn_v",
         "awlevel": [7, 9, 17]
@@ -285,102 +285,109 @@ categories = {
     },
 
     "White Men Doctor": {
-        "comp": "cwhitt", 
+        "comp": "cwhitm", 
         "first": "ft_frst_men_white_v",
         "total": "ft_men_white_v",
         "awlevel": [9, 17]
     },
     "Asian Men Doctor": {
-        "comp": "casiat", 
+        "comp": "casiam", 
         "first": "ft_frst_men_asian_v",
         "total": "ft_men_asian_v",
         "awlevel": [9, 17]
     },
     "Black Men Doctor": {
-        "comp": "cbkaat", 
+        "comp": "cbkaam", 
         "first": "ft_frst_men_black_v",
         "total": "ft_men_black_v",
         "awlevel": [9, 17]
     },
     "Hispanic Men Doctor": {
-        "comp": "chispt", 
+        "comp": "chispm", 
         "first": "ft_frst_men_hisp_v",
         "total": "ft_men_hisp_v",
         "awlevel": [9, 17]
     },
    "Native Hawaiian /Pacific islander Men Doctor" : {
-        "comp": "cnhpit", 
+        "comp": "cnhpim", 
         "first": "ft_frst_men_pacific_v",
         "total": "ft_men_pacific_v",
         "awlevel": [9, 17]
     },
     "2 or more Men Doctor"  : {
-        "comp": "c2mort", 
+        "comp": "c2morm", 
         "first": "ft_frst_men_multi_v",
         "total": "ft_men_multi_v",
         "awlevel": [9, 17]
     },
     "Unknown Men Doctor"  : {
-        "comp": "cunknt", 
+        "comp": "cunknm", 
         "first": "ft_frst_men_unk_v",
         "total": "ft_men_unk_v",
         "awlevel": [9, 17]
     },
     "Foreign Men Doctor"  : {
-        "comp": "cnralt", 
+        "comp": "cnralm", 
         "first": "ft_frst_men_forgn_v",
         "total": "ft_men_forgn_v",
         "awlevel": [9, 17]
     },
     "White Women Doctor": {
-        "comp": "cwhitt", 
+        "comp": "cwhitw", 
         "first": "ft_frst_wmen_white_v",
         "total": "ft_wmen_white_v",
         "awlevel": [9, 17]
     },
     "Asian Women Doctor": {
-        "comp": "casiat", 
+        "comp": "casiaw", 
         "first": "ft_frst_wmen_asian_v",
         "total": "ft_wmen_asian_v",
         "awlevel": [9, 17]
     },
     "Black Women Doctor": {
-        "comp": "cbkaat", 
+        "comp": "cbkaaw", 
         "first": "ft_frst_wmen_black_v",
         "total": "ft_wmen_black_v",
         "awlevel": [9, 17]
     },
     "Hispanic Women Doctor": {
-        "comp": "chispt", 
+        "comp": "chispw", 
         "first": "ft_frst_wmen_hisp_v",
         "total": "ft_wmen_hisp_v",
         "awlevel": [9, 17]
     },
    "Native Hawaiian /Pacific islander Women Doctor" : {
-        "comp": "cnhpit", 
+        "comp": "cnhpiw", 
         "first": "ft_frst_wmen_pacific_v",
         "total": "ft_wmen_pacific_v",
         "awlevel": [9, 17]
     },
     "2 or more Women Doctor"  : {
-        "comp": "c2mort", 
+        "comp": "c2morw", 
         "first": "ft_frst_wmen_multi_v",
         "total": "ft_wmen_multi_v",
         "awlevel": [9, 17]
     },
     "Unknown Women Doctor"  : {
-        "comp": "cunknt", 
+        "comp": "cunknw", 
         "first": "ft_frst_wmen_unk_v",
         "total": "ft_wmen_unk_v",
         "awlevel": [9, 17]
     },
     "Foreign Women Doctor"  : {
-        "comp": "cnralt", 
+        "comp": "cnralw", 
         "first": "ft_frst_wmen_forgn_v",
         "total": "ft_wmen_forgn_v",
         "awlevel": [9, 17]
     },
 
+
+    'Masters': {
+        "comp": "ctotalt", 
+        "first": "ma_ft_frst_tot_all_races_v",
+        "total": "ma_ft_tot_all_races_v",
+        "awlevel": [7]
+    },
     "White Masters": {
         "comp": "cwhitt", 
         "first": "ma_ft_frst_tot_white_v",
@@ -431,153 +438,104 @@ categories = {
     },
 
     "White Men Masters": {
-        "comp": "cwhitt", 
+        "comp": "cwhitm", 
         "first": "ma_ft_frst_men_white_v",
         "total": "ma_ft_men_white_v",
         "awlevel": [7]
     },
     "Asian Men Masters": {
-        "comp": "casiat", 
+        "comp": "casiam", 
         "first": "ma_ft_frst_men_asian_v",
         "total": "ma_ft_men_asian_v",
         "awlevel": [7]
     },
     "Black Men Masters": {
-        "comp": "cbkaat", 
+        "comp": "cbkaam", 
         "first": "ma_ft_frst_men_black_v",
         "total": "ma_ft_men_black_v",
         "awlevel": [7]
     },
     "Hispanic Men Masters": {
-        "comp": "chispt", 
+        "comp": "chispm", 
         "first": "ma_ft_frst_men_hisp_v",
         "total": "ma_ft_men_hisp_v",
         "awlevel": [7]
     },
 
    "Native Hawaiian /Pacific islander Men Masters" : {
-        "comp": "cnhpit", 
+        "comp": "cnhpim", 
         "first": "ma_ft_frst_men_pacific_v",
         "total": "ma_ft_men_pacific_v",
         "awlevel": [7]
     },
     "2 or more Men Masters"  : {
-        "comp": "c2mort", 
+        "comp": "c2morm", 
         "first": "ma_ft_frst_men_multi_v",
         "total": "ma_ft_men_multi_v",
         "awlevel": [7]
     },
     "Unknown Men Masters"  : {
-        "comp": "cunknt", 
+        "comp": "cunknm", 
         "first": "ma_ft_frst_men_unk_v",
         "total": "ma_ft_men_unk_v",
         "awlevel": [7]
     },
     "Foreign Men Masters"  : {
-        "comp": "cnralt", 
+        "comp": "cnralm", 
         "first": "ma_ft_frst_men_forgn_v",
         "total": "ma_ft_men_forgn_v",
         "awlevel": [7]
     },
     "White Women Masters": {
-        "comp": "cwhitt", 
+        "comp": "cwhitw", 
         "first": "ma_ft_frst_wmen_white_v",
         "total": "ma_ft_wmen_white_v",
         "awlevel": [7]
     },
     "Asian Women Masters": {
-        "comp": "casiat", 
+        "comp": "casiaw", 
         "first": "ma_ft_frst_wmen_asian_v",
         "total": "ma_ft_wmen_asian_v",
         "awlevel": [7]
     },
     "Black Women Masters": {
-        "comp": "cbkaat", 
+        "comp": "cbkaaw", 
         "first": "ma_ft_frst_wmen_black_v",
         "total": "ma_ft_wmen_black_v",
         "awlevel": [7]
     },
     "Hispanic Women Masters": {
-        "comp": "chispt", 
+        "comp": "chispw", 
         "first": "ma_ft_frst_wmen_hisp_v",
         "total": "ma_ft_wmen_hisp_v",
         "awlevel": [7]
     },
    "Native Hawaiian /Pacific islander Women Masters" : {
-        "comp": "cnhpit", 
+        "comp": "cnhpiw", 
         "first": "ma_ft_frst_wmen_pacific_v",
         "total": "ma_ft_wmen_pacific_v",
         "awlevel": [7]
     },
     "2 or more Women Masters"  : {
-        "comp": "c2mort", 
+        "comp": "c2morw", 
         "first": "ma_ft_frst_wmen_multi_v",
         "total": "ma_ft_wmen_multi_v",
         "awlevel": [7]
     },
     "Unknown Women Masters"  : {
-        "comp": "cunknt", 
+        "comp": "cunknw", 
         "first": "ma_ft_frst_wmen_unk_v",
         "total": "ma_ft_wmen_unk_v",
         "awlevel": [7]
     },
     "Foreign Women Masters"  : {
-        "comp": "cnralt", 
+        "comp": "cnralw", 
         "first": "ma_ft_frst_wmen_forgn_v",
         "total": "ma_ft_wmen_forgn_v",
         "awlevel": [7]
     },
 }
     
-
-
-# I want to use this code to make an excel file THEN use the file to create graphs off the data 
-#  So what do i need 
-# column for year	degree (enrolled in)	sex	race	PhDs awarded	Masters Awarded (terminal + non-terminal)	first year	enrolled	PCR	RR
-    # degrees are PhD, Masters, or All
-        # PhD if using dr_
-            # can only calculate PCR for 1 value
-        # master if using ma_
-            # cant use PCR or Retention calcultaion currently
-    # Sex is Men, women or both
-        # Men
-            # uses _men_
-        # women 
-            # uses _wmen_ 
-        # both
-            # uses _tot_
-    # race
-        # white
-        #black
-        #indian
-            # CANT DO BC IPEDS HAS NO DATA
-        #asian
-        # native hawaian/ pacific islander
-        #hispanic
-        #multi  # has issues hispanic values inclued hispanic multi racial individuals while _multi is multi non hispanic
-        #unknown
-        #foreign
-        #american, non-white (black+indian+asian+pacific islander+hispanic+multi)
-        #american, under-represented (black+indian+pacific islander+hispanic+multi)
-    # PhD's Awarded
-        # value comes from "comp" with a "awlevel" of  9 or 17
-    # Masters Awarded
-        # value comes from "comp" with "awlevel" of 7
-    # First years
-        # from "first"
-    # Enrolled
-        # from "total"
-    # PCR
-        #PCR(year) = [sum of all comp(year+5) + comp(year+6) + comp(year+7)] / 
-            #[sum of all first(year-1) + first(year) + first(year+1)]
-    # RR
-        #Retention(year) = [sum of all total(year) + comp(year) - first(year)] / 
-        #                  [sum of all total(year-1)]
-
-# For a year if a row would have 0's in all the lines then the line should be excluded
-
-
-
 final_rows = []
 
 # Make sure numeric fields are numeric
@@ -620,10 +578,17 @@ for cat_name, spec in categories.items():
         # -------------------------------
         # AWARDS
         # -------------------------------
-        # PhD completions
-        phd_awarded = df_y[(df_y["awlevel"].isin([9,17]))][comp_var].sum() if comp_var in df_y else 0
-        # Masters completions
-        masters_awarded = df_y[(df_y["awlevel"]==7)][comp_var].sum() if comp_var in df_y else 0
+       # -------------------------------
+        phd_awarded = 0
+        masters_awarded = 0
+
+        if awlevels and 9 in awlevels or 17 in awlevels:
+            # This category tracks PhD completions
+            phd_awarded = df_y[(df_y["awlevel"].isin([9,17]))][comp_var].sum() if comp_var in df_y else 0
+
+        if awlevels and 7 in awlevels:
+            # This category tracks Masters completions
+            masters_awarded = df_y[(df_y["awlevel"]==7)][comp_var].sum() if comp_var in df_y else 0
 
         # -------------------------------
         # Determine degree type
@@ -667,9 +632,31 @@ for cat_name, spec in categories.items():
         # PCR (only uses PhD completions)
         # -------------------------------
 
+
+        df_filt = df[df["awlevel"].isin([9,17])]
+
+        first_years  = [year-1, year, year+1]
+        future_years = [year+5, year+6, year+7]
+
+        first_window = (
+            df_filt[df_filt["year"].isin(first_years)][first_var].sum()
+            if all(y in df_filt["year"].values for y in first_years)
+            else np.nan
+        )
+
+        phd_future = (
+            df_filt[df_filt["year"].isin(future_years)][comp_var].sum()
+            if all(y in df_filt["year"].values for y in future_years)
+            else np.nan
+        )
+
+        pcr = phd_future / first_window if pd.notna(first_window) and first_window > 0 else np.nan
+
+        '''
         # Define the first-year window
         first_years = [year-1, year, year+1]
-
+       
+        
         # Check if all years exist in the DataFrame
         if all(y in df["year"].values for y in first_years):
             # first_window = df[df["year"].isin(first_years)][first_var].sum()
@@ -680,17 +667,20 @@ for cat_name, spec in categories.items():
 
         # Future PhD completions for PCR numerator
         future_years = [year+5, year+6, year+7]
+
+
         if all(y in df["year"].values for y in future_years):
             phd_future = df[(df["year"].isin(future_years)) & (df["awlevel"].isin([9,17]))][comp_var].sum()
         else:
             phd_future = np.nan
+
 
         # Compute PCR only if both first_window and phd_future are valid
         if pd.notna(first_window) and pd.notna(phd_future) and first_window > 0:
             pcr = phd_future / first_window
         else:
             pcr = np.nan
-
+        '''
 
         # -------------------------------
         # Retention Rate (RR)
@@ -701,7 +691,7 @@ for cat_name, spec in categories.items():
 
         # total_prev = df[df["year"] == year-1][total_var].sum() if total_var in df else 0
         
-        rr = (total_sum + phd_awarded + masters_awarded - first_sum) / total_prev if total_prev > 0 else np.nan
+        rr = (total_sum + phd_awarded - first_sum) / total_prev if total_prev > 0 else np.nan
 
         # -------------------------------
         # Skip rows with all zeroes
@@ -714,7 +704,7 @@ for cat_name, spec in categories.items():
         # -------------------------------
         final_rows.append({
             "year": year,
-            "degree": degree_type,
+            "degree enrolled in": degree_type,
             "sex": sex,
             "race": race,
             "phd_awarded": phd_awarded,
@@ -741,3 +731,5 @@ print(f"Tidy dataset saved to: {final_output}")
 
 
 
+# TK NEED TO FIGURE OUT WHY PHD SPECIFC HAS IISSUES (IDENTICAL TO TO ALL SHOULD HAVE 0's for 2010-2017)
+# Make sure Phd awarded and masters awarded rely on the degree 

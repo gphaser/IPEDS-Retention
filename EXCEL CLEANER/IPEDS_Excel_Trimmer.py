@@ -2,7 +2,8 @@
 import os
 import pandas as pd
 
-folder_path = "/Users/co25936/Desktop/PER/IPEDS/Excel Files IPEDS/"
+folder_path = "/Users/co25936/Desktop/PER/IPEDS/Excel Files IPEDS/Untrimmed IPEDS/"
+
 
 def filter_existing_columns(df, selected_columns, filename):
     existing_columns = [col for col in selected_columns if col in df.columns]
@@ -19,6 +20,12 @@ for year in range(2000, 2009):
     
     if os.path.exists(filename):
         df = pd.read_excel(filename)
+        df.columns = (
+        df.columns
+        .astype(str)
+        .str.strip()          # remove leading/trailing whitespace
+        .str.replace('\u00a0', '', regex=False)  # remove non-breaking spaces
+        )
 
         selected_columns = ["UNITID", "CIPCODE", "CTOTALT", "AWLEVEL", 
                             "crace15", "crace16", "CRACE15", "CRACE16", "CTOTALM", "CTOTALW",
@@ -26,7 +33,11 @@ for year in range(2000, 2009):
                             'CRACE18', 'CRACE20','CRACE21', 'CRACE22', 'CUNKNT', "CRACE17", "CRACE19",
                             "crace18", "crace20","crace21", "crace22", 'crace17', 'crace19',
                             # Other racial breakdowns Black, Aisan, Native Hawian/Pacific islander Hispanic/Latino., White, Unknown is the same, 2 or more races, non-american students
-                            'CBKAAT','CASIAT','CNHPIT', 'CHISPT', 'CWHITT','CUNKNT', 'C2MORT', 'CNRALT']
+                            'CBKAAT','CASIAT','CNHPIT', 'CHISPT', 'CWHITT','CUNKNT', 'C2MORT', 'CNRALT',
+                            # Sex breakdown
+                            'CBKAAM','CASIAM','CNHPIM', 'CHISPM', 'CWHITM','CUNKNM', 'C2MORM', 'CNRALM',
+                            'CBKAAW','CASIAW','CNHPIW', 'CHISPW', 'CWHITW','CUNKNW', 'C2MORW', 'CNRALW',
+                            ]
 
         df_filtered = filter_existing_columns(df, selected_columns, filename)
 
@@ -60,12 +71,27 @@ for year in range(2009, 2024):
     
     if os.path.exists(filename):
         df = pd.read_excel(filename)
+        df.columns = (
+        df.columns
+        .astype(str)
+        .str.strip()          # remove leading/trailing whitespace
+        .str.replace('\u00a0', '', regex=False)  # remove non-breaking spaces
+        )
+
+
+        print("RAW COLUMN NAMES:")
+        for col in df.columns:
+             print(repr(col))
 
         selected_columns = ["UNITID", "CIPCODE", "CTOTALT", "AWLEVEL", "CTOTALM", "CTOTALW", 
                             # Racial breakdown, Black, Asian/Pacific islander, Hispanic, White, Unknown, Non-residental alien, Native American/Alaskin 
                             'CRACE18', 'CRACE20','CRACE21', 'CRACE22', 'CUNKNT', "CRACE17", "CRACE19",
                             # Other racial breakdowns Black, Aisan, Native Hawian/Pacific islander Hispanic/Latino., White (Unknown is the same),  2 or more races, non-american students
-                            'CBKAAT','CASIAT','CNHPIT', 'CHISPT', 'CWHITT',  'C2MORT', 'CNRALT']
+                            'CBKAAT','CASIAT','CNHPIT', 'CHISPT', 'CWHITT',  'C2MORT', 'CNRALT',
+                            # Sex breakdown
+                            'CBKAAM','CASIAM','CNHPIM', 'CHISPM', 'CWHITM','CUNKNM', 'C2MORM', 'CNRALM',
+                            'CBKAAW','CASIAW','CNHPIW', 'CHISPW', 'CWHITW','CUNKNW', 'C2MORW', 'CNRALW'
+                            ]
         df_filtered = filter_existing_columns(df, selected_columns, filename)
 
         if not df_filtered.empty and "CIPCODE" in df_filtered.columns and "AWLEVEL" in df_filtered.columns:

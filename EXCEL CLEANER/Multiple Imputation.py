@@ -1,4 +1,5 @@
-# Base code that works well for the individual
+# Base code that works well for the individual 
+# NO LONGER USE USE 2.0 VR THIS ONLY KEPT FOR ARCHIVAL PURPOSES!
 ''' 
 # want to apply this to file path /Users/co25936/Desktop/PER/IPEDS/complete_with_offsets_and_PA_noIPEDS_noAvg.xlsx
 
@@ -661,6 +662,8 @@ final_df = calculate_pcr_retention(df, categories, graph_dir)
 # STEP 5: Graphs per Category
 # ==============================================================
 
+
+# Tk needs adjusting but functional
 def create_category_graphs(results_df, graph_dir):
     """
     Create separate line graphs for PCR and Retention for each category.
