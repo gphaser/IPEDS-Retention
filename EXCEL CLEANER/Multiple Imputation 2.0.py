@@ -49,6 +49,24 @@ import pandas as pd
 import numpy as np
 import os
 
+
+# ==============================================================
+# FILTER OUT MASTERS-ONLY INSTITUTIONS
+# ==============================================================
+
+# UNITIDs that ever grant PhDs (AWLEVEL 9 or 17)
+phd_unitids = (
+    df.loc[df["awlevel"].isin([9, 17]), "unitid"]
+    .dropna()
+    .unique()
+)
+
+# Keep only institutions that offer PhDs
+df = df[df["unitid"].isin(phd_unitids)].copy()
+
+print(f"Remaining institutions after PhD filter: {df['unitid'].nunique()}")
+
+
 # ==============================================================
 # Updated Categories with Total Variables
 # ==============================================================
@@ -237,147 +255,147 @@ categories = {
     },
     "White Doctor": {
         "comp": "cwhitt", 
-        "first": "ft_frst_tot_white_v",
-        "total": "ft_tot_white_v",
+        "first": "dr_ft_frst_tot_white_v",
+        "total": "dr_ft_tot_white_v",
         "awlevel": [9, 17]
     },
     "Asian Doctor": {
         "comp": "casiat", 
-        "first": "ft_frst_tot_asian_v",
-        "total": "ft_tot_asian_v",
+        "first": "dr_ft_frst_tot_asian_v",
+        "total": "dr_ft_tot_asian_v",
         "awlevel": [9, 17]
     },
     "Black Doctor": {
         "comp": "cbkaat", 
-        "first": "ft_frst_tot_black_v",
-        "total": "ft_tot_black_v",
+        "first": "dr_ft_frst_tot_black_v",
+        "total": "dr_ft_tot_black_v",
         "awlevel": [9, 17]
     },
     "Hispanic Doctor": {
         "comp": "chispt", 
-        "first": "ft_frst_tot_hisp_v",
-        "total": "ft_tot_hisp_v",
+        "first": "dr_ft_frst_tot_hisp_v",
+        "total": "dr_ft_tot_hisp_v",
         "awlevel": [9, 17]
     },
    "Native Hawaiian /Pacific islander Doctor" : {
         "comp": "cnhpit", 
-        "first": "ft_frst_tot_pacific_v",
-        "total": "ft_tot_pacific_v",
+        "first": "dr_ft_frst_tot_pacific_v",
+        "total": "dr_ft_tot_pacific_v",
         "awlevel": [9, 17]
     },
     "2 or more Doctor"  : {
         "comp": "c2mort", 
-        "first": "ft_frst_tot_multi_v",
-        "total": "ft_tot_multi_v",
+        "first": "dr_ft_frst_tot_multi_v",
+        "total": "dr_ft_tot_multi_v",
         "awlevel": [9, 17]
     },
     "Unknown Doctor"  : {
         "comp": "cunknt", 
-        "first": "ft_frst_tot_unk_v",
-        "total": "ft_tot_unk_v",
+        "first": "dr_ft_frst_tot_unk_v",
+        "total": "dr_ft_tot_unk_v",
         "awlevel": [9, 17]
     },
     "Foreign Doctor"  : {
         "comp": "cnralt", 
-        "first": "ft_frst_tot_forgn_v",
-        "total": "ft_tot_forgn_v",
+        "first": "dr_ft_frst_tot_forgn_v",
+        "total": "dr_ft_tot_forgn_v",
         "awlevel": [9, 17]
     },
 
     "White Men Doctor": {
         "comp": "cwhitm", 
-        "first": "ft_frst_men_white_v",
-        "total": "ft_men_white_v",
+        "first": "dr_ft_frst_men_white_v",
+        "total": "dr_ft_men_white_v",
         "awlevel": [9, 17]
     },
     "Asian Men Doctor": {
         "comp": "casiam", 
-        "first": "ft_frst_men_asian_v",
-        "total": "ft_men_asian_v",
+        "first": "dr_ft_frst_men_asian_v",
+        "total": "dr_ft_men_asian_v",
         "awlevel": [9, 17]
     },
     "Black Men Doctor": {
         "comp": "cbkaam", 
-        "first": "ft_frst_men_black_v",
-        "total": "ft_men_black_v",
+        "first": "dr_ft_frst_men_black_v",
+        "total": "dr_ft_men_black_v",
         "awlevel": [9, 17]
     },
     "Hispanic Men Doctor": {
         "comp": "chispm", 
-        "first": "ft_frst_men_hisp_v",
-        "total": "ft_men_hisp_v",
+        "first": "dr_ft_frst_men_hisp_v",
+        "total": "dr_ft_men_hisp_v",
         "awlevel": [9, 17]
     },
    "Native Hawaiian /Pacific islander Men Doctor" : {
         "comp": "cnhpim", 
-        "first": "ft_frst_men_pacific_v",
-        "total": "ft_men_pacific_v",
+        "first": "dr_ft_frst_men_pacific_v",
+        "total": "dr_ft_men_pacific_v",
         "awlevel": [9, 17]
     },
     "2 or more Men Doctor"  : {
         "comp": "c2morm", 
-        "first": "ft_frst_men_multi_v",
-        "total": "ft_men_multi_v",
+        "first": "dr_ft_frst_men_multi_v",
+        "total": "dr_ft_men_multi_v",
         "awlevel": [9, 17]
     },
     "Unknown Men Doctor"  : {
         "comp": "cunknm", 
-        "first": "ft_frst_men_unk_v",
-        "total": "ft_men_unk_v",
+        "first": "dr_ft_frst_men_unk_v",
+        "total": "dr_ft_men_unk_v",
         "awlevel": [9, 17]
     },
     "Foreign Men Doctor"  : {
         "comp": "cnralm", 
-        "first": "ft_frst_men_forgn_v",
-        "total": "ft_men_forgn_v",
+        "first": "dr_ft_frst_men_forgn_v",
+        "total": "dr_ft_men_forgn_v",
         "awlevel": [9, 17]
     },
     "White Women Doctor": {
         "comp": "cwhitw", 
-        "first": "ft_frst_wmen_white_v",
-        "total": "ft_wmen_white_v",
+        "first": "dr_ft_frst_wmen_white_v",
+        "total": "dr_ft_wmen_white_v",
         "awlevel": [9, 17]
     },
     "Asian Women Doctor": {
         "comp": "casiaw", 
-        "first": "ft_frst_wmen_asian_v",
-        "total": "ft_wmen_asian_v",
+        "first": "dr_ft_frst_wmen_asian_v",
+        "total": "dr_ft_wmen_asian_v",
         "awlevel": [9, 17]
     },
     "Black Women Doctor": {
         "comp": "cbkaaw", 
-        "first": "ft_frst_wmen_black_v",
-        "total": "ft_wmen_black_v",
+        "first": "dr_ft_frst_wmen_black_v",
+        "total": "dr_ft_wmen_black_v",
         "awlevel": [9, 17]
     },
     "Hispanic Women Doctor": {
         "comp": "chispw", 
-        "first": "ft_frst_wmen_hisp_v",
-        "total": "ft_wmen_hisp_v",
+        "first": "dr_ft_frst_wmen_hisp_v",
+        "total": "dr_ft_wmen_hisp_v",
         "awlevel": [9, 17]
     },
    "Native Hawaiian /Pacific islander Women Doctor" : {
         "comp": "cnhpiw", 
-        "first": "ft_frst_wmen_pacific_v",
-        "total": "ft_wmen_pacific_v",
+        "first": "dr_ft_frst_wmen_pacific_v",
+        "total": "dr_ft_wmen_pacific_v",
         "awlevel": [9, 17]
     },
     "2 or more Women Doctor"  : {
         "comp": "c2morw", 
-        "first": "ft_frst_wmen_multi_v",
-        "total": "ft_wmen_multi_v",
+        "first": "dr_ft_frst_wmen_multi_v",
+        "total": "dr_ft_wmen_multi_v",
         "awlevel": [9, 17]
     },
     "Unknown Women Doctor"  : {
         "comp": "cunknw", 
-        "first": "ft_frst_wmen_unk_v",
-        "total": "ft_wmen_unk_v",
+        "first": "dr_ft_frst_wmen_unk_v",
+        "total": "dr_ft_wmen_unk_v",
         "awlevel": [9, 17]
     },
     "Foreign Women Doctor"  : {
         "comp": "cnralw", 
-        "first": "ft_frst_wmen_forgn_v",
-        "total": "ft_wmen_forgn_v",
+        "first": "dr_ft_frst_wmen_forgn_v",
+        "total": "dr_ft_wmen_forgn_v",
         "awlevel": [9, 17]
     },
 
@@ -561,34 +579,48 @@ for cat_name, spec in categories.items():
         # Filter current year for this category
         df_y = df[df["year"] == year]
 
-        # -------------------------------
-        # FIRST YEAR AND ENROLLED
-        # -------------------------------
         # Remove duplicates by UNITID before summing
         df_y_unique = df_y.drop_duplicates(subset=["unitid"])
 
-        first_sum = df_y_unique[first_var].sum() if first_var in df_y_unique else 0
-        total_sum = df_y_unique[total_var].sum() if total_var in df_y_unique else 0
+        # TK INCLUDE FILTER TO REMOVE MASTERS ONLY INSTITUTIONS ( ONLY AWLEVEL 7 NO 9,17)
+
+        # -------------------------------
+        # FIRST YEAR AND ENROLLED
+        # -------------------------------
+        
+        first_sum = (
+            df_y_unique[first_var].sum(min_count=1)
+            if first_var in df_y_unique.columns
+            else np.nan
+        )
+
+        total_sum = (
+            df_y_unique[total_var].sum(min_count=1)
+            if total_var in df_y_unique.columns
+            else np.nan
+        )
 
         '''
-        first_sum = df_y[first_var].sum() if first_var in df_y else 0
-        total_sum = df_y[total_var].sum() if total_var in df_y else 0
+        first_sum = df_y_unique[first_var].sum() if first_var in df_y_unique else 0
+        total_sum = df_y_unique[total_var].sum() if total_var in df_y_unique else 0
         '''
         
         # -------------------------------
         # AWARDS
         # -------------------------------
        # -------------------------------
-        phd_awarded = 0
-        masters_awarded = 0
+        phd_awarded = np.nan
+        masters_awarded = np.nan
 
-        if awlevels and 9 in awlevels or 17 in awlevels:
-            # This category tracks PhD completions
-            phd_awarded = df_y[(df_y["awlevel"].isin([9,17]))][comp_var].sum() if comp_var in df_y else 0
+        if comp_var in df_y.columns:
 
-        if awlevels and 7 in awlevels:
-            # This category tracks Masters completions
-            masters_awarded = df_y[(df_y["awlevel"]==7)][comp_var].sum() if comp_var in df_y else 0
+            if awlevels and (9 in awlevels or 17 in awlevels):
+                # This category tracks PhD completions
+                phd_awarded = df_y[df_y["awlevel"].isin([9, 17])][comp_var].sum(min_count=1)
+
+            if awlevels and 7 in awlevels:
+                # This category tracks Masters completions
+                masters_awarded = df_y[df_y["awlevel"] == 7][comp_var].sum(min_count=1)
 
         # -------------------------------
         # Determine degree type
@@ -628,76 +660,6 @@ for cat_name, spec in categories.items():
             if key in first_var:
                 race = value
 
-        # -------------------------------
-        # PCR (only uses PhD completions)
-        # -------------------------------
-
-
-        df_filt = df[df["awlevel"].isin([9,17])]
-
-        first_years  = [year-1, year, year+1]
-        future_years = [year+5, year+6, year+7]
-
-        first_window = (
-            df_filt[df_filt["year"].isin(first_years)][first_var].sum()
-            if all(y in df_filt["year"].values for y in first_years)
-            else np.nan
-        )
-
-        phd_future = (
-            df_filt[df_filt["year"].isin(future_years)][comp_var].sum()
-            if all(y in df_filt["year"].values for y in future_years)
-            else np.nan
-        )
-
-        pcr = phd_future / first_window if pd.notna(first_window) and first_window > 0 else np.nan
-
-        '''
-        # Define the first-year window
-        first_years = [year-1, year, year+1]
-       
-        
-        # Check if all years exist in the DataFrame
-        if all(y in df["year"].values for y in first_years):
-            # first_window = df[df["year"].isin(first_years)][first_var].sum()
-           # ALternative that may need to be used  dut to the fact that there are duplicate values for the ALL case 
-           first_window = df[df["year"].isin(first_years) & (df["awlevel"].isin([9,17]))][first_var].sum() 
-        else:
-            first_window = np.nan  # will prevent PCR calculation
-
-        # Future PhD completions for PCR numerator
-        future_years = [year+5, year+6, year+7]
-
-
-        if all(y in df["year"].values for y in future_years):
-            phd_future = df[(df["year"].isin(future_years)) & (df["awlevel"].isin([9,17]))][comp_var].sum()
-        else:
-            phd_future = np.nan
-
-
-        # Compute PCR only if both first_window and phd_future are valid
-        if pd.notna(first_window) and pd.notna(phd_future) and first_window > 0:
-            pcr = phd_future / first_window
-        else:
-            pcr = np.nan
-        '''
-
-        # -------------------------------
-        # Retention Rate (RR)
-        # -------------------------------
-        # TK we need to only have 1 of the 2 possible outcums as there are duplicate values for Total and sum between the PhD and Masters programs
-        df_prev_unique = df[df["year"] == year-1].drop_duplicates(subset=["unitid"])
-        total_prev = df_prev_unique[total_var].sum() if total_var in df_prev_unique else 0
-
-        # total_prev = df[df["year"] == year-1][total_var].sum() if total_var in df else 0
-        
-        rr = (total_sum + phd_awarded - first_sum) / total_prev if total_prev > 0 else np.nan
-
-        # -------------------------------
-        # Skip rows with all zeroes
-        # -------------------------------
-        if (phd_awarded == 0 and masters_awarded == 0 and first_sum == 0 and total_sum == 0):
-            continue
 
         # -------------------------------
         # Append row
@@ -711,8 +673,6 @@ for cat_name, spec in categories.items():
             "masters_awarded": masters_awarded,
             "first_year": first_sum,
             "enrolled": total_sum,
-            "pcr": pcr,
-            "rr": rr,
         })
 
 # -------------------------------
@@ -727,9 +687,3 @@ final_output = "/Users/co25936/Desktop/PER/IPEDS/PRC_National_dataset.xlsx"
 final_df.to_excel(final_output, index=False)
 print(f"Tidy dataset saved to: {final_output}")
 
-
-
-
-
-# TK NEED TO FIGURE OUT WHY PHD SPECIFC HAS IISSUES (IDENTICAL TO TO ALL SHOULD HAVE 0's for 2010-2017)
-# Make sure Phd awarded and masters awarded rely on the degree 
