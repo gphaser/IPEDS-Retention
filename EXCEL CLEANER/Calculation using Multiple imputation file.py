@@ -96,11 +96,7 @@ for group_keys, g in df.groupby(group_cols):
                 if denom == 0:
                     rr = np.nan
                 else:
-                    rr = (
-                            row_curr[COL_ENROLLED].values[0]
-                            + row_curr[COL_PHD_AWARDED].values[0]
-                             - row_curr[COL_FIRST_YEAR].values[0]
-                        ) / denom
+                    rr = (row_curr[COL_ENROLLED].values[0] + row_curr[COL_PHD_AWARDED].values[0]- row_curr[COL_FIRST_YEAR].values[0]) / denom
             else:
                 rr = np.nan
         except Exception:

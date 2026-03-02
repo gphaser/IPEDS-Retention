@@ -18,11 +18,11 @@ file_path_1 = os.path.join(directory1, file1)
 file_path_2 = os.path.join(directory2, file2)
 
 # Read the first worksheet into a DataFrame
-df1 = pd.read_excel(file_path_1, sheet_name='Sheet1')  # Change 'Sheet1' to your actual sheet name
+df1 = pd.read_excel(file_path_1, sheet_name='Sheet1')  # Change 'Sheet1' to your actual sheet name in your Excel file for file1
 print("Columns in df1:", df1.columns.tolist())  # Debugging line
 
 # Read the second worksheet into a DataFrame
-df2 = pd.read_excel(file_path_2, sheet_name='Sheet1')  # Change 'Sheet1' to your actual sheet name
+df2 = pd.read_excel(file_path_2, sheet_name='Sheet1')  # Change 'Sheet1' to your actual sheet name in the Excel file for file2
 print("Columns in df2:", df2.columns.tolist())  # Debugging line
 
 # SORT THROUGH THE GSS add ft_tot_all_races_v+ft_tot_forgn_v+ ft_frst_tot_all_races_v if sum = 0 then replace values with NaN 

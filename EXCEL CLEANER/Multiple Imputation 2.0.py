@@ -49,6 +49,9 @@ import pandas as pd
 import numpy as np
 import os
 
+# NEED TO REMOVE THE SCOOLS EXCLUED DUE TO MISSING VALUES 
+
+
 
 # ==============================================================
 # FILTER OUT MASTERS-ONLY INSTITUTIONS
@@ -63,6 +66,11 @@ phd_unitids = (
 
 # Keep only institutions that offer PhDs
 df = df[df["unitid"].isin(phd_unitids)].copy()
+
+'''
+# Test to check if masters are being counted (filtering out masters rows)
+df = df[df["awlevel"].isin([9, 17])].copy()
+'''
 
 print(f"Remaining institutions after PhD filter: {df['unitid'].nunique()}")
 
@@ -561,7 +569,7 @@ df = df.apply(pd.to_numeric, errors="ignore")
 
 years = sorted(df["year"].unique())
 
-# Precompute non-duplicated enrollment + first-year values
+# Remove duplicate data that has the same UNITID, YEAR
 unique_first = df.drop_duplicates(subset=["unitid", "year"])[["unitid", "year"] + [col for col in df.columns if "_frst_" in col]]
 unique_total = df.drop_duplicates(subset=["unitid", "year"])[["unitid", "year"] + [col for col in df.columns if "_tot_" in col]]
 
@@ -579,17 +587,19 @@ for cat_name, spec in categories.items():
         # Filter current year for this category
         df_y = df[df["year"] == year]
 
-        # Remove duplicates by UNITID before summing
+        
+        #Remove duplicates by UNITID before summing 
         df_y_unique = df_y.drop_duplicates(subset=["unitid"])
+        
 
-        # TK INCLUDE FILTER TO REMOVE MASTERS ONLY INSTITUTIONS ( ONLY AWLEVEL 7 NO 9,17)
+        # ISSUE DUPLICATE first_var and total var for some years 
 
         # -------------------------------
         # FIRST YEAR AND ENROLLED
         # -------------------------------
         
         first_sum = (
-            df_y_unique[first_var].sum(min_count=1)
+          df_y_unique[first_var].sum(min_count=1)
             if first_var in df_y_unique.columns
             else np.nan
         )

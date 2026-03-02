@@ -33,7 +33,11 @@ for filename in os.listdir(directory):
         # --- Combine specified column pairs ---
         for col1, col2 in column_pairs:
             if col1 in df.columns and col2 in df.columns:
+                # Makes NaN's into 0's so need to remove  (change sees to have no effect )
+                '''
                 df[col1] = df[col1].fillna(0) + df[col2].fillna(0)
+                '''
+                df[col1] = df[col1].add(df[col2])
                 df = df.drop(columns=[col2])  # drop the second column
             elif col2 in df.columns and col1 not in df.columns:
                 # rename col2 to col1 for consistency
