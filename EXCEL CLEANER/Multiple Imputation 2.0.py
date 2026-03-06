@@ -10,7 +10,6 @@ from sklearn.impute import IterativeImputer
 # ==============================================================
 
 input_path = '/Users/co25936/Desktop/PER/IPEDS/GSS_IPEDS_Combined_file.xlsx'
-#input_path = "/Users/co25936/Desktop/PER/IPEDS/complete_with_offsets_and_PA_noIPEDS_All_UNITIDS.xlsx"
 output_path = "/Users/co25936/Desktop/PER/IPEDS/complete_with_imputation.xlsx"
 
 
@@ -67,7 +66,7 @@ phd_unitids = (
 # Keep only institutions that offer PhDs
 df = df[df["unitid"].isin(phd_unitids)].copy()
 
-'''
+''' THIS CORRECTION WAS NOT NEEDED DUPLICATION ISSUE WAS ADRESSED PREVIOUSLY! 
 # Test to check if masters are being counted (filtering out masters rows)
 df = df[df["awlevel"].isin([9, 17])].copy()
 '''
