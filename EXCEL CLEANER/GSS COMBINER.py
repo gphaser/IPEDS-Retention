@@ -51,6 +51,48 @@ combined_df = pd.concat(dataframes, ignore_index=True)
 # Sort the combined DataFrame by 'Year'
 combined_df = combined_df.sort_values(by='Year')
 
+# ==============================================================
+# STEP 2: CHECK DUPLICATES
+# ==============================================================
+
+# IMPORTANT: adjust this if your GSS ID column has a different name
+gss_id_col = "gss_code"   # or "GSS_CODE" if that's your column name
+
+id_cols = [gss_id_col, "UNITID", "Year"]
+
+dup_check = combined_df.duplicated(subset=id_cols, keep=False)
+
+print(f"⚠️ Total duplicate rows (GSS + UNITID + Year): {dup_check.sum()}")
+
+if dup_check.any():
+    duplicates_df = combined_df[dup_check].sort_values(id_cols)
+
+    print("First 10 duplicates:")
+    print(duplicates_df.head(10))
+
+    # Save full duplicate list
+    dup_path = "/Users/co25936/Desktop/PER/IPEDS/GSS_duplicates.xlsx"
+    duplicates_df.to_excel(dup_path, index=False)
+
+    print(f"✅ Full duplicate list saved to: {dup_path}")
+
+    # ==========================================================
+    # OPTIONAL: show which groups are duplicated
+    # ==========================================================
+    dup_groups = (
+        duplicates_df
+        .groupby(id_cols)
+        .size()
+        .reset_index(name="count")
+        .sort_values("count", ascending=False)
+    )
+
+    print("Top duplicate groups:")
+    print(dup_groups.head(10))
+
+else:
+    print("✅ No duplicates found.")
+
 # Save the combined DataFrame
 output_path = "/Users/co25936/Desktop/PER/IPEDS/Excel Files GSS/GSS_combined_file.xlsx"
 combined_df.to_excel(output_path, index=False)

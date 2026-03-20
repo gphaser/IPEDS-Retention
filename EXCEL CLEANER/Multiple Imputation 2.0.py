@@ -1,5 +1,118 @@
 import pandas as pd
 import numpy as np
+from sklearn.experimental import enable_iterative_imputer  # noqa
+from sklearn.impute import IterativeImputer
+
+# ==============================================================
+# STEP 1: Load WIDE Data (IMPORTANT FIX)
+# ==============================================================
+
+input_path = "/Users/co25936/Desktop/PER/IPEDS/GSS_IPEDS_COMBINED_LONG.xlsx"
+output_path = "/Users/co25936/Desktop/PER/IPEDS/IMPUTED_WIDE_DATA.xlsx"
+
+df = pd.read_excel(input_path)
+
+# ==============================================================
+# STEP 2: REMOVE UNWANTED UNITIDs
+# ==============================================================
+
+exclude_unitids = [
+    130934, 157289, 139658, 227757, 211273, 185828, 196079,
+    200697, 190594, 131496, 176080, 162928, 190567, 169248,
+    119678, 151111, 171571, 138947, 186399, 147767, 219347,
+    166638, 207971, 219471, 195049, 228644, 202480, 194541,
+    131159, 195003
+]
+
+df = df[~df["UNITID"].isin(exclude_unitids)].copy()
+
+print(f"After UNITID filter: {df.shape[0]} institutions")
+
+# ==============================================================
+# STEP 3: FILTER YEARS (2010–2023)
+# ==============================================================
+
+# Keep only columns with years 2010–2023
+cols_to_keep = ["UNITID"]
+
+for col in df.columns:
+    for year in range(2010, 2024):
+        if f"_{year}_" in col:
+            cols_to_keep.append(col)
+
+df = df[cols_to_keep]
+
+print(f"Columns after year filter: {len(df.columns)}")
+
+# ==============================================================
+# STEP 4: FILTER OUT MASTERS-ONLY INSTITUTIONS
+# ==============================================================
+
+# Keep UNITIDs that have ANY PhD-related columns (aw9 or aw17) with data
+phd_cols = [col for col in df.columns if "_aw9" in col or "_aw17" in col]
+
+# Identify schools with at least one non-missing PhD value
+phd_mask = df[phd_cols].notna().any(axis=1)
+
+df = df[phd_mask].copy()
+
+print(f"After PhD filter: {df.shape[0]} institutions")
+
+# ==============================================================
+# STEP 5: PREPARE FOR IMPUTATION
+# ==============================================================
+
+id_col = "UNITID"
+
+numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+numeric_cols = [col for col in numeric_cols if col != id_col]
+
+df_numeric = df[numeric_cols]
+
+# Remove columns that are completely missing
+df_numeric = df_numeric.loc[:, df_numeric.notna().any()]
+
+print(f"Imputing {df_numeric.shape[1]} variables")
+
+# ==============================================================
+# STEP 6: RUN MICE
+# ==============================================================
+
+imputer = IterativeImputer(
+    random_state=42,
+    max_iter=20,
+    min_value=0,
+    sample_posterior=True
+)
+
+imputed_array = imputer.fit_transform(df_numeric)
+
+# ==============================================================
+# STEP 7: REBUILD DATAFRAME
+# ==============================================================
+
+df_imputed = pd.DataFrame(imputed_array, columns=df_numeric.columns)
+
+# Round counts
+df_imputed = df_imputed.round(0)
+
+# Combine back with UNITID
+df_final = pd.concat([df[[id_col]].reset_index(drop=True),
+                      df_imputed.reset_index(drop=True)], axis=1)
+
+# ==============================================================
+# STEP 8: SAVE
+# ==============================================================
+
+df_final.to_excel(output_path, index=False)
+
+print("✅ MICE imputation complete with filters applied.")
+
+
+''' OLD CODE FOR NON/WIDE VERSION IT WORKS OUT
+
+import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import os
 from sklearn.experimental import enable_iterative_imputer  # noqa
@@ -23,6 +136,34 @@ required_cols = ["ctotalt"]
 # required_cols = ["ctotalt", "first"]
 if not set(required_cols).issubset(df.columns):
     raise ValueError("Missing required columns: 'CTOTALT' and/or 'first'.")
+
+
+
+# ==============================================================
+# FILTER TO REMOVE UNWANTED UNITID's FROM RAW DATA
+# ==============================================================
+# Create a list of UNITID"s in the data by reading the combined file
+# trim the UNITID's to remove the unwanted ones from our list
+# UNIT ID's to exclude
+130934, 157289, 139658,	227757, 211273, 185828, 196079, 200697, 190594, 131496, 176080,
+162928, 190567, 169248, 119678, 151111, 171571, 138947, 186399, 147767, 219347, 166638,	
+207971,	219471,	195049,	228644,	202480,	194541,	131159,	195003,
+ 
+
+# ==============================================================
+# UPDATE DATA TO WORK WITH MICE
+# ==============================================================
+# for every UnitID we want to create rows for years even without data
+# such that if data exists for 2010 and 2014-2023 it would create blank rows for 2011, 2012, and 2013 while still having the rows associated with the UNITID
+# importaint need to adjust imput path to pull from complete IPEDS and COMPLETE GSS data if data exists in one for a year but not the other keep that data but keep the other cells blank
+# to do this upddate the GSS and IPEDS combiner data 
+
+
+# ==============================================================
+# UPDATE MICE TO PREFORM CHECKS ON ALL WANTED VALUES
+# ==============================================================
+# Want to impute for each possible "total" and "first"
+
 
 # Impute missing values for CTOTALT and first
 imputer = IterativeImputer(random_state=42, max_iter=10, min_value=0)
@@ -66,12 +207,8 @@ phd_unitids = (
 # Keep only institutions that offer PhDs
 df = df[df["unitid"].isin(phd_unitids)].copy()
 
-''' THIS CORRECTION WAS NOT NEEDED DUPLICATION ISSUE WAS ADRESSED PREVIOUSLY! 
-# Test to check if masters are being counted (filtering out masters rows)
-df = df[df["awlevel"].isin([9, 17])].copy()
-'''
-
 print(f"Remaining institutions after PhD filter: {df['unitid'].nunique()}")
+
 
 
 # ==============================================================
@@ -609,10 +746,12 @@ for cat_name, spec in categories.items():
             else np.nan
         )
 
-        '''
+'''
+'''
         first_sum = df_y_unique[first_var].sum() if first_var in df_y_unique else 0
         total_sum = df_y_unique[total_var].sum() if total_var in df_y_unique else 0
-        '''
+'''
+'''
         
         # -------------------------------
         # AWARDS
@@ -696,3 +835,4 @@ final_output = "/Users/co25936/Desktop/PER/IPEDS/PRC_National_dataset.xlsx"
 final_df.to_excel(final_output, index=False)
 print(f"Tidy dataset saved to: {final_output}")
 
+'''
