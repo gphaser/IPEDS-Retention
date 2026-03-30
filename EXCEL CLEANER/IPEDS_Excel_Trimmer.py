@@ -3,6 +3,7 @@ import os
 import pandas as pd
 
 folder_path = "/Users/co25936/Desktop/PER/IPEDS/Excel Files IPEDS/Untrimmed IPEDS/"
+output_path = '/Users/co25936/Desktop/PER/IPEDS/Excel Files IPEDS/Trimmed/'
 
 
 def filter_existing_columns(df, selected_columns, filename):
@@ -13,6 +14,8 @@ def filter_existing_columns(df, selected_columns, filename):
         print(f"Warning: Missing columns in {filename}: {missing_columns}")
     
     return df[existing_columns] if existing_columns else pd.DataFrame()
+
+
 
 # --------- Pre-2008 ---------
 for year in range(2000, 2009):
@@ -26,37 +29,38 @@ for year in range(2000, 2009):
         .str.strip()          # remove leading/trailing whitespace
         .str.replace('\u00a0', '', regex=False)  # remove non-breaking spaces
         )
+        df.columns = df.columns.str.lower() # makes all columns lowercase 
 
-        selected_columns = ["UNITID", "CIPCODE", "CTOTALT", "AWLEVEL", 
-                            "crace15", "crace16", "CRACE15", "CRACE16", "CTOTALM", "CTOTALW",
+        selected_columns = ["unitid", "cipcode", "ctotalt", "awlevel", "ctotalm", "ctotalw", "crace15", "crace16",
                             # Racial breakdown, Black, Asian/Pacific islander, Hispanic, White, Unknown, Non-residental alien, Native American/Alaskin 
-                            'CRACE18', 'CRACE20','CRACE21', 'CRACE22', 'CUNKNT', "CRACE17", "CRACE19",
                             "crace18", "crace20","crace21", "crace22", 'crace17', 'crace19',
                             # Other racial breakdowns Black, Aisan, Native Hawian/Pacific islander Hispanic/Latino., White, Unknown is the same, 2 or more races, non-american students
-                            'CBKAAT','CASIAT','CNHPIT', 'CHISPT', 'CWHITT','CUNKNT', 'C2MORT', 'CNRALT',
+                            "cbkaat","casiat","cnhpit", "chispt", "cwhitt", "c2mort", "cnralt",
                             # Sex breakdown
-                            'CBKAAM','CASIAM','CNHPIM', 'CHISPM', 'CWHITM','CUNKNM', 'C2MORM', 'CNRALM',
-                            'CBKAAW','CASIAW','CNHPIW', 'CHISPW', 'CWHITW','CUNKNW', 'C2MORW', 'CNRALW',
+                            "cbkaam","casiam","cnhpim", "chispm", "cwhitm","cunknm", "c2morm", "cnralm",
+                            "cbkaaw","casiaw","cnhpiw", "chispw", "cwhitw","cunknw", "c2morw", "cnralw",
+                            # Major number (either 1st or 2nd major)
+                            'majornum',
                             ]
 
         df_filtered = filter_existing_columns(df, selected_columns, filename)
 
         # Only proceed if df_filtered is not empty and has required columns
-        if not df_filtered.empty and "CIPCODE" in df_filtered.columns and "AWLEVEL" in df_filtered.columns:
-            count = df['CIPCODE'].astype(str).str.startswith('40.08').sum()
+        if not df_filtered.empty and "cipcode" in df_filtered.columns and "awlevel" in df_filtered.columns:
+            count = df['cipcode'].astype(str).str.startswith('40.08').sum()
             print(f"{year} - starts with 40.08: {count}")
 
-            count_general = df['CIPCODE'].astype(str).str.startswith('40.0801').sum()
+            count_general = df['cipcode'].astype(str).str.startswith('40.0801').sum()
             print(f"{year} - starts with 40.0801: {count_general}")
 
             df_filtered = df_filtered[
-                (df_filtered["CIPCODE"] == 40.0801) &
-                (df_filtered["AWLEVEL"].isin([7, 9, 11, 17]))
+                (df_filtered["cipcode"] == 40.0801) &
+                (df_filtered["awlevel"].isin([7, 9, 11, 17]))
             ]
 
-            df_filtered["Year"] = year
+            df_filtered["year"] = year
 
-            output_filename = f"{folder_path}c{year}_trimmed_file.xlsx"
+            output_filename = f"{output_path}c{year}_trimmed_file.xlsx"
             df_filtered.to_excel(output_filename, index=False)
             print(f"Saved: {output_filename}")
         else:
@@ -77,38 +81,41 @@ for year in range(2009, 2024):
         .str.strip()          # remove leading/trailing whitespace
         .str.replace('\u00a0', '', regex=False)  # remove non-breaking spaces
         )
+        df.columns = df.columns.str.lower() # makes all columns lowercase 
 
 
         print("RAW COLUMN NAMES:")
         for col in df.columns:
              print(repr(col))
 
-        selected_columns = ["UNITID", "CIPCODE", "CTOTALT", "AWLEVEL", "CTOTALM", "CTOTALW", 
+        selected_columns = ["unitid", "cipcode", "ctotalt", "awlevel", "ctotalm", "ctotalw", 
                             # Racial breakdown, Black, Asian/Pacific islander, Hispanic, White, Unknown, Non-residental alien, Native American/Alaskin 
-                            'CRACE18', 'CRACE20','CRACE21', 'CRACE22', 'CUNKNT', "CRACE17", "CRACE19",
+                            "crace18", "crace20","crace21", "crace22", "cunknt", "crace17", "crace19",
                             # Other racial breakdowns Black, Aisan, Native Hawian/Pacific islander Hispanic/Latino., White (Unknown is the same),  2 or more races, non-american students
-                            'CBKAAT','CASIAT','CNHPIT', 'CHISPT', 'CWHITT',  'C2MORT', 'CNRALT',
+                            "cbkaat","casiat","cnhpit", "chispt", "cwhitt", "c2mort", "cnralt",
                             # Sex breakdown
-                            'CBKAAM','CASIAM','CNHPIM', 'CHISPM', 'CWHITM','CUNKNM', 'C2MORM', 'CNRALM',
-                            'CBKAAW','CASIAW','CNHPIW', 'CHISPW', 'CWHITW','CUNKNW', 'C2MORW', 'CNRALW'
+                            "cbkaam","casiam","cnhpim", "chispm", "cwhitm","cunknm", "c2morm", "cnralm",
+                            "cbkaaw","casiaw","cnhpiw", "chispw", "cwhitw","cunknw", "c2morw", "cnralw",
+                            # Major number (either 1st or 2nd major)
+                            'majornum',
                             ]
         df_filtered = filter_existing_columns(df, selected_columns, filename)
 
-        if not df_filtered.empty and "CIPCODE" in df_filtered.columns and "AWLEVEL" in df_filtered.columns:
-            count = df['CIPCODE'].astype(str).str.startswith('40.08').sum()
+        if not df_filtered.empty and "cipcode" in df_filtered.columns and "awlevel" in df_filtered.columns:
+            count = df['cipcode'].astype(str).str.startswith('40.08').sum()
             print(f"{year} - starts with 40.08: {count}")
 
-            count_general = df['CIPCODE'].astype(str).str.startswith('40.0801').sum()
+            count_general = df['cipcode'].astype(str).str.startswith('40.0801').sum()
             print(f"{year} - starts with 40.0801: {count_general}")
 
             df_filtered = df_filtered[
-                (df_filtered["CIPCODE"] == 40.0801) &
-                (df_filtered["AWLEVEL"].isin([7,9,17]))
+                (df_filtered["cipcode"] == 40.0801) &
+                (df_filtered["awlevel"].isin([7,9,17]))
             ]
 
-            df_filtered["Year"] = year
+            df_filtered["year"] = year
 
-            output_filename = f"{folder_path}c{year}_trimmed_file.xlsx"
+            output_filename = f"{output_path}c{year}_trimmed_file.xlsx"
             df_filtered.to_excel(output_filename, index=False)
             print(f"Saved: {output_filename}")
         else:

@@ -13,7 +13,7 @@ df = pd.read_excel(input_path)
 # Standardize column names (optional)
 df.columns = df.columns.str.strip()
 
-id_cols = ["UNITID", "Year", "AWLEVEL"]
+id_cols = ["unitid", "year", "awlevel"]
 
 # ==============================================================
 # STEP 2: Identify Numeric Columns
@@ -95,8 +95,8 @@ else:
 value_cols = [col for col in df_clean.columns if col not in id_cols]
 
 df_wide = df_clean.pivot_table(
-    index="UNITID",
-    columns=["Year", "AWLEVEL"],
+    index="unitid",
+    columns=["year", "awlevel"],
     values=value_cols,
     aggfunc="first"  # safe now, no duplicates remain
 )

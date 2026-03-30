@@ -29,6 +29,7 @@ print("Columns in df1:", df1.columns.tolist())  # Debugging line
 df2 = pd.read_excel(file_path_2, sheet_name='Sheet1')  # Change 'Sheet1' to your actual sheet name in the Excel file for file2
 print("Columns in df2:", df2.columns.tolist())  # Debugging line
 
+
 # SORT THROUGH THE GSS add ft_tot_all_races_v+ft_tot_forgn_v+ ft_frst_tot_all_races_v if sum = 0 then replace values with NaN 
 # Calculate the sum of the specified columns
 sum_columns = df1[['ft_tot_all_races_v', 'ft_tot_forgn_v', 'ft_frst_tot_all_races_v']].sum(axis=1)
@@ -36,25 +37,31 @@ sum_columns = df1[['ft_tot_all_races_v', 'ft_tot_forgn_v', 'ft_frst_tot_all_race
 # Replace values with NaN if the sum equals 0 (this leaves the cell emptpy)
 df1.loc[sum_columns == 0, ['ft_tot_all_races_v', 'ft_tot_forgn_v', 'ft_frst_tot_all_races_v']] = pd.NA
 
-# Merge the DataFrames on 'UNITID' and 'Year'
-combined_df = pd.merge(df1, df2, on=['UNITID', 'Year'], how='outer')  # Use 'inner' if you only want matching UNITIDs and Years, and 'outer' for rows only in GSS or rows only in IPEDS
+# Standardize column names before merging. Done by making them all lowercase 
+df1.columns = df1.columns.str.lower()
+df2.columns = df2.columns.str.lower()
+
+
+# Merge the DataFrames on 'unitid' and 'year'
+
+combined_df = pd.merge(df1, df2, on=['unitid', 'year'], how='outer')  # Use 'inner' if you only want matching unitids and year, and 'outer' for rows only in GSS or rows only in IPEDS
 
 # Create full UNITID-Year grid to have blank rows for no data 
-all_unitids = combined_df['UNITID'].unique()
-all_years = combined_df['Year'].unique()
+all_unitids = combined_df['unitid'].unique()
+all_years = combined_df['year'].unique()
 
 full_index = pd.MultiIndex.from_product(
     [all_unitids, all_years],
-    names=['UNITID', 'Year']
+    names=['unitid', 'year']
 )
 
 full_df = pd.DataFrame(index=full_index).reset_index()
 
-combined_df = pd.merge(full_df, combined_df, on=['UNITID', 'Year'], how='left')
+combined_df = pd.merge(full_df, combined_df, on=['unitid', 'year'], how='left')
 
 # Check for duplicates and aggregate if necessary
 # For example, if you want to keep the first occurrence of each combination:
-# combined_df = combined_df.groupby(['UNITID', 'Year'], as_index=False).first()
+# combined_df = combined_df.groupby(['unitid', 'year'], as_index=False).first()
 
 # Check the columns of the combined DataFrame
 print("Columns in combined_df:", combined_df.columns.tolist())  # Debugging line
