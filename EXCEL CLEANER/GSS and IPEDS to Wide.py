@@ -1,21 +1,8 @@
 # Reformat the GSS and IPEDS COMBINED FILE into Wide FORMAT
 # goal takethe GSS and IPEDS combined file and go from Uniit ides each haveing a row for each year 
 # have 1 row for each UNITID with all the data
-# NEED TO ADRESS THE DUPLICATES IN THE DATA where some Columns are duplicated across AWLEVEL but others vary (ft and ft_first year duplicate and Total is unique
 
-#Code to try and adress the duplicates and non uninque data that exists for some years
-
-# Need to manualy filter out the bad casses  and the duplicates 
-'''
-110635 2008                 
-         2009                 
-139658 2021                      
- 	    2022                  
-        2023                 
-212054 2000              
-230728 2009           
-234030 2017 keep the ft_total all races of 10 to 
-'''
+# Need to manualy filter out the bad casses  using the missing vals
 
 import pandas as pd
 import numpy as np
@@ -77,6 +64,33 @@ gss_lookup = (
 # Drop gss_code before reshaping
 df = df.drop(columns=['gss_code'])
 
+print( "WORKING!")
+# ==============================================================
+# STEP 4.5: Distribute values from blank AWLEVEL rows ( NOT WORKIN AHHHHH) 
+# ==============================================================
+
+# Separate blank and non-blank AWLEVEL rows
+df_blank = df[df['awlevel'].isna()]
+df_nonblank = df[df['awlevel'].notna()]
+
+id_cols = ['unitid', 'year', 'awlevel']
+value_cols = [col for col in df.columns if col not in id_cols]
+
+# Loop through each unitid-year where a blank row exists
+for (unitid, year), blank_group in df_blank.groupby(['unitid', 'year']):
+    blank_row = blank_group.iloc[0]  # assume 1 blank row per unitid-year
+    mask = (df_nonblank['unitid'] == unitid) & (df_nonblank['year'] == year)
+
+    for col in value_cols:
+        df_nonblank.loc[mask, col] = df_nonblank.loc[mask, col].combine_first(
+            pd.Series(blank_row[col], index=df_nonblank.loc[mask].index)
+        )
+
+# Combine back into a single dataframe
+df = df_nonblank.copy()
+
+print("✅ Step 4.5 complete: values from blank AWLEVEL distributed")
+
 # ==============================================================
 # STEP 5: Convert to Wide Format
 # ==============================================================
@@ -108,340 +122,33 @@ cols_to_check = [col for col in df_wide_blanks.columns if col.startswith(('CTOTA
 # Create a new column counting missing values across those columns
 df_wide_blanks['MISSING_COUNT'] = df_wide_blanks[cols_to_check].isnull().sum(axis=1)
 
-# Filter rows based on missing_count
+# Filter rows based on missing_count (use this if we want to elimiate rows in the code)
 filtered_df = df_wide_blanks[df_wide_blanks['MISSING_COUNT'] > 10]
 
-print(df_wide_blanks)
-print(filtered_df)
 
 
+
+# ==============================================================
+# STEP 7.5: Keep Only Years >= 2010
+# ==============================================================
+
+df_wide_trim = df_wide[[col for col in df_wide.columns if not col.endswith(tuple(str(y) for y in range(1900, 2010)))]]
 
 # ==============================================================
 # STEP 8: Save Output
 # ==============================================================
 
+# Original wide file (all years that passed earlier filters)
 df_wide_blanks.to_excel(output_path, index=False)
 
+# Trimmed file (2010+ only)
+output_trimmed_path = "/Users/co25936/Desktop/PER/IPEDS/GSS_IPEDS_COMBINED_WIDE_trimmed.xlsx"
+
+#file with the trimed years 
+df_wide_trim.to_excel(output_trimmed_path, index=False)
+
 print("✅ Wide format file saved to:", output_path)
+print("✅ Trimmed (2010+) file saved to:", output_trimmed_path)
 
 
 
-
-
-
-
-'''
-import pandas as pd
-import numpy as np
-import os
-
-# ==============================================================
-# STEP 1: Load Data
-# ==============================================================
-
-input_path = '/Users/co25936/Desktop/PER/IPEDS/GSS_IPEDS_Combined_file.xlsx'
-output_path = "/Users/co25936/Desktop/PER/IPEDS/GSS_IPEDS_COMBINED_LONG.xlsx"
-
-df = pd.read_excel(input_path)
-
-# ==============================================================
-# STEP 2: Define Column Groups
-# ==============================================================
-
-ft_cols = [
-    col for col in df.columns
-    if col.startswith('ft_tot')
-    or col.startswith('ft_frst_tot')
-    or col.startswith('dr_ft_tot')
-    or col.startswith('dr_ft_frst_tot')
-    or col.startswith('ma_ft_tot')
-    or col.startswith('ma_ft_frst_tot')
-]
-
-id_cols = ['UNITID', 'Year', 'AWLEVEL']
-
-other_cols = [col for col in df.columns if col not in id_cols + ft_cols]
-
-
-# due to not all data being true duplicates 
-check = df.groupby(['UNITID', 'Year'])[ft_cols].nunique()
-
-safe_ft_cols = [col for col in ft_cols if (check[col] <= 1).all()]
-unsafe_ft_cols = [col for col in ft_cols if (check[col] > 1).any()]
-
-print("Safe to collapse:", safe_ft_cols)
-print("Must keep AWLEVEL:", unsafe_ft_cols)
-
-df_ft_safe = df.groupby(['UNITID', 'Year'], as_index=False)[safe_ft_cols].first()
-
-other_cols = other_cols + unsafe_ft_cols
-
-ft_cols = safe_ft_cols # put here to do the check
-
-# CHECK .first is ok 
-check = df.groupby(['UNITID', 'Year'])[ft_cols].nunique()
-
-problems = check[(check > 1).any(axis=1)]
-print(problems)
-
-# ==============================================================
-# STEP 3: Collapse FT columns (duplicate across AWLEVEL)
-# ==============================================================
-
-df_ft = df_ft_safe
-
-
-# ==============================================================
-# STEP 4: Clean AWLEVEL data (remove true duplicates if any)
-# ==============================================================
-
-df_aw = df[['UNITID', 'Year', 'AWLEVEL'] + other_cols]
-
-'''
-# If duplicates exist, resolve them safely
-# df_aw = df_aw.groupby(['UNITID', 'Year', 'AWLEVEL'], as_index=False).first()
-'''
-
-# ==============================================================
-# STEP 5: Pivot AWLEVEL-dependent columns
-# ==============================================================
-
-df_aw_wide = df_aw.pivot(index='UNITID', columns=['Year', 'AWLEVEL'])
-
-df_aw_wide.columns = [
-    f"{col}_{year}_aw{aw}" for col, year, aw in df_aw_wide.columns
-]
-
-df_aw_wide = df_aw_wide.reset_index()
-
-# ==============================================================
-# STEP 6: Pivot FT columns (no AWLEVEL)
-# ==============================================================
-
-df_ft_wide = df_ft.pivot(index='UNITID', columns='Year')
-
-df_ft_wide.columns = [
-    f"{col}_{year}" for col, year in df_ft_wide.columns
-]
-
-df_ft_wide = df_ft_wide.reset_index()
-
-# ==============================================================
-# STEP 7: Merge Final Dataset
-# ==============================================================
-
-df_final = pd.merge(df_aw_wide, df_ft_wide, on='UNITID', how='left')
-
-# ==============================================================
-# STEP 8: Save
-# ==============================================================
-
-df_final.to_excel(output_path, index=False)
-
-print("✅ Finished: Data reshaped and saved.")
-'''
-
-
-'''
-Code to adress duplicates
-import pandas as pd
-import numpy as np
-import os
-
-# ==============================================================
-# STEP 1: Load Data
-# ==============================================================
-
-input_path = '/Users/co25936/Desktop/PER/IPEDS/GSS_IPEDS_Combined_file.xlsx'
-output_path = "/Users/co25936/Desktop/PER/IPEDS/GSS_IPEDS_COMBINED_LONG.xlsx"
-
-df = pd.read_excel(input_path)
-
-# ==============================================================
-# STEP 2: Define Column Groups
-# ==============================================================
-
-ft_cols = [
-    col for col in df.columns
-    if col.startswith('ft_tot')
-    or col.startswith('ft_frst_tot')
-    or col.startswith('dr_ft_frst_tot')
-    or col.startswith('ma_ft_frst_tot')
-]
-
-id_cols = ['UNITID', 'Year', 'AWLEVEL']
-
-other_cols = [col for col in df.columns if col not in id_cols + ft_cols]
-
-# CHECK .first is ok 
-check = df.groupby(['UNITID', 'Year'])[ft_cols].nunique()
-
-problems = check[(check > 1).any(axis=1)]
-print(problems)
-
-# ==============================================================
-# STEP 3: Collapse FT columns (duplicate across AWLEVEL)
-# ==============================================================
-
-df_ft = df.groupby(['UNITID', 'Year'], as_index=False)[ft_cols].first()
-
-# ==============================================================
-# STEP 4: Clean AWLEVEL data (remove true duplicates if any)
-# ==============================================================
-
-df_aw = df[['UNITID', 'Year', 'AWLEVEL'] + other_cols]
-
-# If duplicates exist, resolve them safely
-df_aw = df_aw.groupby(['UNITID', 'Year', 'AWLEVEL'], as_index=False).first()
-
-# ==============================================================
-# STEP 5: Pivot AWLEVEL-dependent columns
-# ==============================================================
-
-df_aw_wide = df_aw.pivot(index='UNITID', columns=['Year', 'AWLEVEL'])
-
-df_aw_wide.columns = [
-    f"{col}_{year}_aw{aw}" for col, year, aw in df_aw_wide.columns
-]
-
-df_aw_wide = df_aw_wide.reset_index()
-
-# ==============================================================
-# STEP 6: Pivot FT columns (no AWLEVEL)
-# ==============================================================
-
-df_ft_wide = df_ft.pivot(index='UNITID', columns='Year')
-
-df_ft_wide.columns = [
-    f"{col}_{year}" for col, year in df_ft_wide.columns
-]
-
-df_ft_wide = df_ft_wide.reset_index()
-
-# ==============================================================
-# STEP 7: Merge Final Dataset
-# ==============================================================
-
-df_final = pd.merge(df_aw_wide, df_ft_wide, on='UNITID', how='left')
-
-# ==============================================================
-# STEP 8: Save
-# ==============================================================
-
-df_final.to_excel(output_path, index=False)
-
-print("✅ Finished: Data reshaped and saved.")
-
-''' 
-
-
-'''
-Code to try and adress the duplicates and non uninque data that exists for some years
-
-import pandas as pd
-import numpy as np
-import os
-
-# ==============================================================
-# STEP 1: Load Data
-# ==============================================================
-
-input_path = '/Users/co25936/Desktop/PER/IPEDS/GSS_IPEDS_Combined_file.xlsx'
-output_path = "/Users/co25936/Desktop/PER/IPEDS/GSS_IPEDS_COMBINED_LONG.xlsx"
-
-df = pd.read_excel(input_path)
-
-# ==============================================================
-# STEP 2: Define Column Groups
-# ==============================================================
-
-ft_cols = [
-    col for col in df.columns
-    if col.startswith('ft_tot')
-    or col.startswith('ft_frst_tot')
-    or col.startswith('dr_ft_tot')
-    or col.startswith('dr_ft_frst_tot')
-    or col.startswith('ma_ft_tot')
-    or col.startswith('ma_ft_frst_tot')
-]
-
-id_cols = ['UNITID', 'Year', 'AWLEVEL']
-
-other_cols = [col for col in df.columns if col not in id_cols + ft_cols]
-
-
-# due to not all data being true duplicates 
-check = df.groupby(['UNITID', 'Year'])[ft_cols].nunique()
-
-safe_ft_cols = [col for col in ft_cols if (check[col] <= 1).all()]
-unsafe_ft_cols = [col for col in ft_cols if (check[col] > 1).any()]
-
-print("Safe to collapse:", safe_ft_cols)
-print("Must keep AWLEVEL:", unsafe_ft_cols)
-
-df_ft_safe = df.groupby(['UNITID', 'Year'], as_index=False)[safe_ft_cols].first()
-
-other_cols = other_cols + unsafe_ft_cols
-
-ft_cols = safe_ft_cols # put here to do the check
-
-# CHECK .first is ok 
-check = df.groupby(['UNITID', 'Year'])[ft_cols].nunique()
-
-problems = check[(check > 1).any(axis=1)]
-print(problems)
-
-# ==============================================================
-# STEP 3: Collapse FT columns (duplicate across AWLEVEL)
-# ==============================================================
-
-df_ft = df_ft_safe
-
-# ==============================================================
-# STEP 4: Clean AWLEVEL data (remove true duplicates if any)
-# ==============================================================
-
-df_aw = df[['UNITID', 'Year', 'AWLEVEL'] + other_cols]
-
-# If duplicates exist, resolve them safely
-df_aw = df_aw.groupby(['UNITID', 'Year', 'AWLEVEL'], as_index=False).first()
-
-# ==============================================================
-# STEP 5: Pivot AWLEVEL-dependent columns
-# ==============================================================
-
-df_aw_wide = df_aw.pivot(index='UNITID', columns=['Year', 'AWLEVEL'])
-
-df_aw_wide.columns = [
-    f"{col}_{year}_aw{aw}" for col, year, aw in df_aw_wide.columns
-]
-
-df_aw_wide = df_aw_wide.reset_index()
-
-# ==============================================================
-# STEP 6: Pivot FT columns (no AWLEVEL)
-# ==============================================================
-
-df_ft_wide = df_ft.pivot(index='UNITID', columns='Year')
-
-df_ft_wide.columns = [
-    f"{col}_{year}" for col, year in df_ft_wide.columns
-]
-
-df_ft_wide = df_ft_wide.reset_index()
-
-# ==============================================================
-# STEP 7: Merge Final Dataset
-# ==============================================================
-
-df_final = pd.merge(df_aw_wide, df_ft_wide, on='UNITID', how='left')
-
-# ==============================================================
-# STEP 8: Save
-# ==============================================================
-
-df_final.to_excel(output_path, index=False)
-
-print("✅ Finished: Data reshaped and saved.")
-
-'''

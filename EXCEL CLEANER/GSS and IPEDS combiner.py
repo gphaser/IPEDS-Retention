@@ -12,9 +12,9 @@ directory2 = '/Users/co25936/Desktop/PER/IPEDS/Excel Files IPEDS'
 directory3 = '/Users/co25936/Desktop/PER/IPEDS/'
 
 # Specify the names of the Excel files you want to combine
-file1 = 'GSS_combined_file.xlsx'  # Change this to your actual first file name
+file1 = 'GSS_combined_file_cleaned.xlsx'  # Change this to your actual first file name
 # file2 = 'IPEDS_WIDE_SAFE.xlsx' # Change this to your actual second file name
-file2 = 'IPEDS_combined_file.xlsx'  # Change this to your actual second file name
+file2 = 'IPEDS_combined_file_cleaned.xlsx'  # Change this to your actual second file name
 
 # Construct the full file paths
 file_path_1 = os.path.join(directory1, file1)
