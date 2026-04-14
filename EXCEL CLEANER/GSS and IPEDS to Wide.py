@@ -66,30 +66,63 @@ df = df.drop(columns=['gss_code'])
 
 print( "WORKING!")
 # ==============================================================
-# STEP 4.5: Distribute values from blank AWLEVEL rows ( NOT WORKIN AHHHHH) 
+# STEP 4.5: Distribute values from blank AWLEVEL rows 
+# check 119678 2010,2011, 2012 should go 4,4,4 curently goes 4, ,4
+# ==============================================================
+# ==============================================================
+# (WORKING WOOO! ))
 # ==============================================================
 
-# Separate blank and non-blank AWLEVEL rows
+
+df.replace(r'^\s*$', np.nan, regex=True, inplace=True)
+
 df_blank = df[df['awlevel'].isna()]
 df_nonblank = df[df['awlevel'].notna()]
 
 id_cols = ['unitid', 'year', 'awlevel']
 value_cols = [col for col in df.columns if col not in id_cols]
 
-# Loop through each unitid-year where a blank row exists
-for (unitid, year), blank_group in df_blank.groupby(['unitid', 'year']):
-    blank_row = blank_group.iloc[0]  # assume 1 blank row per unitid-year
-    mask = (df_nonblank['unitid'] == unitid) & (df_nonblank['year'] == year)
+# 🔥 Step 1: Get valid AWLEVELs per UNITID
+awlevel_map = (
+    df_nonblank.groupby('unitid')['awlevel']
+    .unique()
+    .to_dict()
+)
 
-    for col in value_cols:
-        df_nonblank.loc[mask, col] = df_nonblank.loc[mask, col].combine_first(
-            pd.Series(blank_row[col], index=df_nonblank.loc[mask].index)
-        )
+new_rows = []
 
-# Combine back into a single dataframe
-df = df_nonblank.copy()
+# 🔥 Step 2: Expand blank rows into correct AWLEVELs
+for (unitid, year), group in df_blank.groupby(['unitid', 'year']):
+    
+    if unitid not in awlevel_map:
+        continue  # skip if no known structure
+    
+    valid_awlevels = awlevel_map[unitid]
+    base_row = group.iloc[0]
 
-print("✅ Step 4.5 complete: values from blank AWLEVEL distributed")
+    for aw in valid_awlevels:
+        new_row = base_row.copy()
+        new_row['awlevel'] = aw
+        new_rows.append(new_row)
+
+# Convert new rows to DF
+df_new = pd.DataFrame(new_rows)
+
+# 🔥 Step 3: Combine everything
+df_combined = pd.concat([df_nonblank, df_new], ignore_index=True)
+
+# 🔥 Step 4: Fill within (unitid, year, awlevel)
+df_combined = df_combined.sort_values(['unitid','year','awlevel'])
+
+df_combined[value_cols] = df_combined.groupby(
+    ['unitid','year','awlevel']
+)[value_cols].transform(lambda x: x.ffill().bfill())
+
+df = df_combined.copy()
+
+print("✅ Step 4.5 COMPLETE: AWLEVEL structure preserved correctly")
+result = df.groupby('unitid')['awlevel'].nunique().value_counts()
+print(result)
 
 # ==============================================================
 # STEP 5: Convert to Wide Format
@@ -98,7 +131,10 @@ print("✅ Step 4.5 complete: values from blank AWLEVEL distributed")
 df_wide = df.set_index(['unitid', 'awlevel', 'year']).unstack('year')
 
 # Flatten column names
-df_wide.columns = [f"{col[0]}_{col[1]}" for col in df_wide.columns]
+df_wide.columns = [
+    f"{col[0]}_{int(col[1])}" if pd.notna(col[1]) else col[0]
+    for col in df_wide.columns
+]
 
 df_wide = df_wide.reset_index()
 
@@ -126,13 +162,18 @@ df_wide_blanks['MISSING_COUNT'] = df_wide_blanks[cols_to_check].isnull().sum(axi
 filtered_df = df_wide_blanks[df_wide_blanks['MISSING_COUNT'] > 10]
 
 
-
-
 # ==============================================================
 # STEP 7.5: Keep Only Years >= 2010
 # ==============================================================
 
-df_wide_trim = df_wide[[col for col in df_wide.columns if not col.endswith(tuple(str(y) for y in range(1900, 2010)))]]
+# Trim years < 2010
+df_wide_trim = df_wide[[
+    col for col in df_wide.columns
+    if not (
+        col.split('_')[-1].isdigit() and
+        int(col.split('_')[-1]) < 2010
+    )
+]]
 
 # ==============================================================
 # STEP 8: Save Output

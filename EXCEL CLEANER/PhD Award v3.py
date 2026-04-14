@@ -1,3 +1,5 @@
+# IMPORTAINT NEED TO ADJUST CARIABLES TO ACCOUNT FOR NOW ALL BEING LOWER CASE!
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
