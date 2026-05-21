@@ -1,7 +1,6 @@
 # Reformat the GSS and IPEDS COMBINED FILE into Wide FORMAT
 # goal takethe GSS and IPEDS combined file and go from Uniit ides each haveing a row for each year 
 # have 1 row for each UNITID with all the data
-
 # Need to manualy filter out the bad casses  using the missing vals
 
 import pandas as pd
@@ -82,7 +81,7 @@ df_nonblank = df[df['awlevel'].notna()]
 id_cols = ['unitid', 'year', 'awlevel']
 value_cols = [col for col in df.columns if col not in id_cols]
 
-# 🔥 Step 1: Get valid AWLEVELs per UNITID
+# Step 1: Get valid AWLEVELs per UNITID
 awlevel_map = (
     df_nonblank.groupby('unitid')['awlevel']
     .unique()
@@ -91,7 +90,7 @@ awlevel_map = (
 
 new_rows = []
 
-# 🔥 Step 2: Expand blank rows into correct AWLEVELs
+# Step 2: Expand blank rows into correct AWLEVELs
 for (unitid, year), group in df_blank.groupby(['unitid', 'year']):
     
     if unitid not in awlevel_map:
@@ -108,10 +107,10 @@ for (unitid, year), group in df_blank.groupby(['unitid', 'year']):
 # Convert new rows to DF
 df_new = pd.DataFrame(new_rows)
 
-# 🔥 Step 3: Combine everything
+# Step 3: Combine everything
 df_combined = pd.concat([df_nonblank, df_new], ignore_index=True)
 
-# 🔥 Step 4: Fill within (unitid, year, awlevel)
+# Step 4: Fill within (unitid, year, awlevel)
 df_combined = df_combined.sort_values(['unitid','year','awlevel'])
 
 df_combined[value_cols] = df_combined.groupby(
@@ -120,7 +119,7 @@ df_combined[value_cols] = df_combined.groupby(
 
 df = df_combined.copy()
 
-print("✅ Step 4.5 COMPLETE: AWLEVEL structure preserved correctly")
+print("Step 4.5 COMPLETE: AWLEVEL structure preserved correctly")
 result = df.groupby('unitid')['awlevel'].nunique().value_counts()
 print(result)
 
@@ -146,24 +145,7 @@ df_wide = df_wide.merge(gss_lookup, on='unitid', how='left')
 
 
 # ==============================================================
-# STEP 7: Add in variable to count number of missing data points
-# ==============================================================
-
-#DataFrame
-df_wide_blanks = df_wide
-
-# Select columns that match your patterns
-cols_to_check = [col for col in df_wide_blanks.columns if col.startswith(('CTOTALT', 'ft_tot_all_races', 'ft_frst_total_all_races'))]
-
-# Create a new column counting missing values across those columns
-df_wide_blanks['MISSING_COUNT'] = df_wide_blanks[cols_to_check].isnull().sum(axis=1)
-
-# Filter rows based on missing_count (use this if we want to elimiate rows in the code)
-filtered_df = df_wide_blanks[df_wide_blanks['MISSING_COUNT'] > 10]
-
-
-# ==============================================================
-# STEP 7.5: Keep Only Years >= 2010
+# STEP 6.5: Keep Only Years >= 2010
 # ==============================================================
 
 # Trim years < 2010
@@ -175,18 +157,66 @@ df_wide_trim = df_wide[[
     )
 ]]
 
+
+# ==============================================================
+# STEP 7: Add in variable to count number of missing data points
+# ==============================================================
+
+# DataFrame
+df_wide_blanks = df_wide_trim.copy()
+
+# Column groups
+ctotalt_cols = [col for col in df_wide_blanks.columns if col.startswith('ctotalt_')]
+ft_tot_cols = [col for col in df_wide_blanks.columns if col.startswith('ft_tot_all_races_')]
+ft_frst_cols = [col for col in df_wide_blanks.columns if col.startswith('ft_frst_tot_all_races_')]
+
+# Count missing values across years
+df_wide_blanks['MISSING_CTOTALT'] = df_wide_blanks[ctotalt_cols].isnull().sum(axis=1)
+df_wide_blanks['MISSING_ft_tot'] = df_wide_blanks[ft_tot_cols].isnull().sum(axis=1)
+df_wide_blanks['MISSING_ft_frst'] = df_wide_blanks[ft_frst_cols].isnull().sum(axis=1)
+
+# Total missing across all groups
+cols_to_check = ctotalt_cols + ft_tot_cols + ft_frst_cols
+df_wide_blanks['MISSING_COUNT'] = df_wide_blanks[cols_to_check].isnull().sum(axis=1)
+
+
+# ==============================================================
+# STEP 7.5: Filter bad rows with exceptions
+# ==============================================================
+
+exception_ids = [207971, 445188]
+
+mask = (
+    (
+        (df_wide_blanks['MISSING_CTOTALT'] >= 5) |
+        (df_wide_blanks['MISSING_ft_tot'] >= 5) |
+        (df_wide_blanks['MISSING_ft_frst'] >= 5)
+    )
+    &
+    (~df_wide_blanks['unitid'].isin(exception_ids))
+)
+
+# Keep only GOOD rows
+filtered_df = df_wide_blanks[~mask].copy()
+
+print("Rows removed:", mask.sum())
+print("Rows remaining:", len(filtered_df))
+
+
+
 # ==============================================================
 # STEP 8: Save Output
 # ==============================================================
 
 # Original wide file (all years that passed earlier filters)
-df_wide_blanks.to_excel(output_path, index=False)
+df_wide.to_excel(output_path, index=False)
 
-# Trimmed file (2010+ only)
+# Trimmed file output path (2010+ only)
 output_trimmed_path = "/Users/co25936/Desktop/PER/IPEDS/GSS_IPEDS_COMBINED_WIDE_trimmed.xlsx"
 
 #file with the trimed years 
-df_wide_trim.to_excel(output_trimmed_path, index=False)
+# df_wide_blanks.to_excel(output_trimmed_path, index=False)
+filtered_df.to_excel(output_trimmed_path, index=False)
 
 print("✅ Wide format file saved to:", output_path)
 print("✅ Trimmed (2010+) file saved to:", output_trimmed_path)

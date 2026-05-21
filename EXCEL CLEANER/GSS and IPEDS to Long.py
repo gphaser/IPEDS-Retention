@@ -1,3 +1,7 @@
+# NO LONGER USED USE GSS AND IPEDS TO WIDE FOR CORRECT VERSION
+
+
+
 # Reformat the GSS and IPEDS COMBINED FILE into Wide FORMAT
 # goal takethe GSS and IPEDS combined file and go from Uniit ides each haveing a row for each year 
 # have 1 row for each UNITID with all the data

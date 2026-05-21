@@ -16,11 +16,11 @@ df_trimmed = df.dropna(subset=['ft_tot_all_races_v'])
 #  FOR ALL UNIVERSITIES
 
 
-# Filter by AWLEVEL and UNITID
-filtered_df = df_trimmed[df_trimmed['AWLEVEL'] == 17][[
-    'UNITID', 'Year', 'AWLEVEL',
+# Filter by awlevel and unitid
+filtered_df = df_trimmed[df_trimmed['awlevel'] == 17][[
+    'unitid', 'year', 'awlevel',
     'ft_tot_all_races_v', 'ft_frst_tot_all_races_v',
-    'CTOTALT', 'CTOTALM', 'CTOTALW',
+    'ctotalt', 'ctotalm', 'ctotalw',
     'ma_ft_tot_all_races_v','dr_ft_tot_all_races_v',
     'ma_ft_frst_tot_all_races_v', 'dr_ft_frst_tot_all_races_v', 
 
@@ -39,9 +39,9 @@ filtered_df = df_trimmed[df_trimmed['AWLEVEL'] == 17][[
 
     #Racial/Ethinc breakdwon - degrees earben
         # Racial breakdown, Non-residental alien, Black,Native American/Alaskin, Asian/Pacific islander, Hispanic, White, Unknown,
-        'CRACE17_STD', 'CRACE18_STD','CRACE19_STD', 'CRACE20_STD','CRACE21_STD', 'CRACE22_STD', 'CUNKNT',
+        'crace17_std', 'crace18_std','crace19_std', 'crace20_std','crace21_std', 'crace22_std', 'cunknt',
         # Other racial breakdowns Black, Aisan, Native Hawian/Pacific islander Hispanic/Latino., White (Unknown is the same),  2 or more races, non-american students
-        'CBKAAT','CASIAT','CNHPIT', 'CHISPT', 'CWHITT', 'C2MORT', 'CNRALT', 
+        'cbkaat','casiat','cnhpit', 'chispt', 'cwhitt', 'c2mort', 'cnralt', 
     
     # Racial/Ethnic breakdowns - First-Time Enrollment
     "ft_frst_tot_black_v", "ft_frst_tot_indian_v", "ft_frst_tot_asian_v", "ft_frst_tot_pacific_v",
@@ -49,26 +49,26 @@ filtered_df = df_trimmed[df_trimmed['AWLEVEL'] == 17][[
 
 ]
 # If a school has >1 row in a year, sum numeric columns
-filtered_df = filtered_df.groupby(["UNITID", "Year"], as_index=False).sum(numeric_only=True)
+filtered_df = filtered_df.groupby(["unitid", "year"], as_index=False).sum(numeric_only=True)
 
-# Instead of unitid_list, pull all unique UNITIDs from the dataset
-all_unitids = filtered_df['UNITID'].unique()
+# Instead of unitid_list, pull all unique unitids from the dataset
+all_unitids = filtered_df['unitid'].unique()
 
-# Create a complete DataFrame with all missing years filled (2000–2023 for ALL UNITIDs)
-all_years = pd.MultiIndex.from_product([all_unitids, range(2000, 2024)], names=['UNITID', 'Year']).to_frame(index=False)
-complete_df = all_years.merge(filtered_df, how='left', on=['UNITID', 'Year'])
+# Create a complete DataFrame with all missing years filled (2000–2023 for ALL unitids)
+all_years = pd.MultiIndex.from_product([all_unitids, range(2000, 2024)], names=['unitid', 'year']).to_frame(index=False)
+complete_df = all_years.merge(filtered_df, how='left', on=['unitid', 'year'])
 
 # Create a complete DataFrame with all missing years filled
-all_years = pd.MultiIndex.from_product([all_unitids, range(2000, 2024)], names=['UNITID', 'Year']).to_frame(index=False)
-complete_df = all_years.merge(filtered_df, how='left', on=['UNITID', 'Year'])
+all_years = pd.MultiIndex.from_product([all_unitids, range(2000, 2024)], names=['unitid', 'year']).to_frame(index=False)
+complete_df = all_years.merge(filtered_df, how='left', on=['unitid', 'year'])
 
-# Fill missing AWLEVEL with 17
-complete_df['AWLEVEL'] = complete_df['AWLEVEL'].fillna(17)
+# Fill missing awlevel with 17
+complete_df['awlevel'] = complete_df['awlevel'].fillna(17)
 
 # Fill missing values with NaN``
 complete_df['ft_tot_all_races_v'] = complete_df['ft_tot_all_races_v'].fillna(np.nan)
 complete_df['ft_frst_tot_all_races_v'] = complete_df['ft_frst_tot_all_races_v'].fillna(np.nan)
-complete_df['CTOTALT'] = complete_df['CTOTALT'].fillna(np.nan)
+complete_df['ctotalt'] = complete_df['ctotalt'].fillna(np.nan)
 
 # Add offset columns
 offset_columns = [
@@ -97,23 +97,23 @@ print(f"File saved at: {output_path}")
 
 # Calculate offset values with safe handling
 for index, row in complete_df.iterrows():
-    year = row['Year']
-    unitid = row['UNITID']
+    year = row['year']
+    unitid = row['unitid']
 
     # Lookup values with safe extraction
-    total = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['ft_tot_all_races_v'].values)
-    total_plus_1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['ft_tot_all_races_v'].values)
+    total = safe_extract(complete_df[(complete_df['unitid'] == unitid) & (complete_df['year'] == year)]['ft_tot_all_races_v'].values)
+    total_plus_1 = safe_extract(complete_df[(complete_df['unitid'] == unitid) & (complete_df['year'] == year + 1)]['ft_tot_all_races_v'].values)
 
-    first_minus_1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year - 1)]['ft_frst_tot_all_races_v'].values)
-    first = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['ft_frst_tot_all_races_v'].values)
-    first_plus_1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['ft_frst_tot_all_races_v'].values)
+    first_minus_1 = safe_extract(complete_df[(complete_df['unitid'] == unitid) & (complete_df['year'] == year - 1)]['ft_frst_tot_all_races_v'].values)
+    first = safe_extract(complete_df[(complete_df['unitid'] == unitid) & (complete_df['year'] == year)]['ft_frst_tot_all_races_v'].values)
+    first_plus_1 = safe_extract(complete_df[(complete_df['unitid'] == unitid) & (complete_df['year'] == year + 1)]['ft_frst_tot_all_races_v'].values)
 
-    grad = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['CTOTALT'].values)
+    grad = safe_extract(complete_df[(complete_df['unitid'] == unitid) & (complete_df['year'] == year)]['ctotalt'].values)
 
-    grad_plus_1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['CTOTALT'].values)
-    grad_plus_5 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CTOTALT'].values)
-    grad_plus_6 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CTOTALT'].values)
-    grad_plus_7 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CTOTALT'].values)
+    grad_plus_1 = safe_extract(complete_df[(complete_df['unitid'] == unitid) & (complete_df['year'] == year + 1)]['ctotalt'].values)
+    grad_plus_5 = safe_extract(complete_df[(complete_df['unitid'] == unitid) & (complete_df['year'] == year + 5)]['ctotalt'].values)
+    grad_plus_6 = safe_extract(complete_df[(complete_df['unitid'] == unitid) & (complete_df['year'] == year + 6)]['ctotalt'].values)
+    grad_plus_7 = safe_extract(complete_df[(complete_df['unitid'] == unitid) & (complete_df['year'] == year + 7)]['ctotalt'].values)
 
 
 
@@ -146,14 +146,14 @@ for index, row in complete_df.iterrows():
 
 
 # Save the final result
-output_path = '/Users/co25936/Desktop/PER/IPEDS/complete_with_offsets_and_PA_noIPEDS_All_UNITIDS.xlsx'
+output_path = '/Users/co25936/Desktop/PER/IPEDS/complete_with_offsets_and_PA_noIPEDS_All_unitidS.xlsx'
 complete_df.to_excel(output_path, index=False)
 print(f'File saved at: {output_path}')
 
-# --- Aggregate PCR across UNITIDs instead of averaging ---
+# --- Aggregate PCR across unitids instead of averaging ---
 
-# Collapse the data by year (sum across UNITIDs)
-yearly_totals = complete_df.groupby("Year").agg({
+# Collapse the data by year (sum across unitids)
+yearly_totals = complete_df.groupby("year").agg({
     "first_minus_1": "sum",
     "first": "sum",
     "first_plus_1": "sum",
@@ -170,36 +170,36 @@ yearly_totals["PCR_value_total"] = (
 
 
 
-# Count unique UNITIDs per year
-unitid_counts = complete_df.groupby("Year")["UNITID"].nunique().reset_index()
-unitid_counts.columns = ["Year", "Unique_UNITIDs"]
+# Count unique unitids per year
+unitid_counts = complete_df.groupby("year")["unitid"].nunique().reset_index()
+unitid_counts.columns = ["year", "Unique_unitids"]
 
-print("\nNumber of unique UNITIDs per year:")
+print("\nNumber of unique unitids per year:")
 print(unitid_counts)
 
 # Correct way: use the raw column, not the offset one
-true_enrollment_and_grads = filtered_df.groupby("Year").agg({
+true_enrollment_and_grads = filtered_df.groupby("year").agg({
     "ft_frst_tot_all_races_v": "sum",   # first-year enrollments
-    "CTOTALT": "sum"                    # PhD grads
+    "ctotalt": "sum"                    # PhD grads
 }).reset_index()
 
 print("\nTRUE Number of first years per year (direct from IPEDS):")
-print(true_enrollment_and_grads[["Year", "ft_frst_tot_all_races_v"]])
+print(true_enrollment_and_grads[["year", "ft_frst_tot_all_races_v"]])
 
 print("\nTRUE Number of male first years per year (direct from IPEDS):")
-print(filtered_df[["Year", "ft_frst_men_all_races_v"]])
+print(filtered_df[["year", "ft_frst_men_all_races_v"]])
 
 print("\nTRUE Number of female first years per year (direct from IPEDS):")
-print(filtered_df[["Year", "ft_frst_wmen_all_races_v"]])
+print(filtered_df[["year", "ft_frst_wmen_all_races_v"]])
 
 print("\nTRUE Number of PhD grads per year (direct from IPEDS):")
-print(true_enrollment_and_grads[["Year", "CTOTALT"]])
+print(true_enrollment_and_grads[["year", "ctotalt"]])
 
 print("\nTRUE Number of male grads per year (direct from IPEDS):")
-print(filtered_df[["Year", "CTOTALM"]])
+print(filtered_df[["year", "ctotalm"]])
 
 print("\nTRUE Number of female grads per year (direct from IPEDS):")
-print(filtered_df[["Year", "CTOTALW"]])
+print(filtered_df[["year", "ctotalw"]])
 
 
 # TO CHECK IF MALE + FEMALE = TOTAL
@@ -209,43 +209,43 @@ print(filtered_df[["Year", "CTOTALW"]])
 high_pcr_df = complete_df[complete_df["PCR_value"] > 2]
 
 if not high_pcr_df.empty:
-    print("\nUNITIDs with PCR_value > 2:")
-    for _, row in high_pcr_df[["UNITID", "Year", "PCR_value"]].sort_values(["UNITID", "Year"]).iterrows():
-        print(f"UNITID: {row['UNITID']}, Year: {int(row['Year'])}, PCR_value: {row['PCR_value']:.3f}")
+    print("\nunitids with PCR_value > 2:")
+    for _, row in high_pcr_df[["unitid", "year", "PCR_value"]].sort_values(["unitid", "year"]).iterrows():
+        print(f"unitid: {row['unitid']}, year: {int(row['year'])}, PCR_value: {row['PCR_value']:.3f}")
 else:
     print("\nNo institutions with PCR_value > 2.")
 
 
 
 ''' OLD WAY
-# Aggregate first-years and PhD grads across UNITIDs per year
-enrollment_and_grads = complete_df.groupby("Year").agg({
+# Aggregate first-years and PhD grads across unitids per year
+enrollment_and_grads = complete_df.groupby("year").agg({
     "first": "sum",   # first-year enrollments
-    "grad": "sum"     # PhD grads (CTOTALT)
+    "grad": "sum"     # PhD grads (ctotalt)
 }).reset_index()
 
 print("\nNumber of first years per year:")
-print(enrollment_and_grads[["Year", "first"]])
+print(enrollment_and_grads[["year", "first"]])
 
 print("\nNumber of PhD grads per year:")
-print(enrollment_and_grads[["Year", "grad"]])
+print(enrollment_and_grads[["year", "grad"]])
 '''
 
 # --- Plotting only 2001–2016 ---
 fig, ax = plt.subplots(figsize=(14, 6))
 
 # Restrict scatter to 2001–2016
-for unitid in complete_df["UNITID"].unique():
-    subset = complete_df[(complete_df["UNITID"] == unitid) & 
-                         (complete_df["Year"].between(2001, 2016))]
-    ax.scatter(subset["Year"], subset["PCR_value"], alpha=0.3, s=20)
+for unitid in complete_df["unitid"].unique():
+    subset = complete_df[(complete_df["unitid"] == unitid) & 
+                         (complete_df["year"].between(2001, 2016))]
+    ax.scatter(subset["year"], subset["PCR_value"], alpha=0.3, s=20)
 
 # Restrict yearly_totals to 2001–2016
-yearly_subset = yearly_totals[yearly_totals["Year"].between(2001, 2016)]
+yearly_subset = yearly_totals[yearly_totals["year"].between(2001, 2016)]
 
 # Plot the total PCR (red line)
-ax.plot(yearly_subset["Year"], yearly_subset["PCR_value_total"],
-        color="red", linewidth=2, label="Total PCR (summed across UNITIDs)")
+ax.plot(yearly_subset["year"], yearly_subset["PCR_value_total"],
+        color="red", linewidth=2, label="Total PCR (summed across unitids)")
 
 print(yearly_totals["PCR_value_total"])
 
@@ -257,8 +257,8 @@ ax.set_xticklabels(range(2001, 2017), rotation=45)
 # Optionally enforce x-axis range
 ax.set_xlim(2001, 2016)
 
-ax.set_title("PCR Value (Summed Across all UNITIDs, 2001–2016)", fontsize=18)
-ax.set_xlabel("Year", fontsize=16)
+ax.set_title("PCR Value (Summed Across all unitids, 2001–2016)", fontsize=18)
+ax.set_xlabel("year", fontsize=16)
 ax.set_ylabel("PCR Value", fontsize=16)
 ax.legend()
 ax.grid(True)
@@ -269,13 +269,13 @@ ax.set_yticks(np.arange(np.floor(y_min), np.ceil(y_max) + 1, 1))
 
 
 plt.tight_layout()
-plt.savefig('/Users/co25936/Desktop/PER/IPEDS/PCR_Value_Total_noAvg_All_UNITIDS.png')
+plt.savefig('/Users/co25936/Desktop/PER/IPEDS/PCR_Value_Total_noAvg_All_unitidS.png')
 plt.show()
 
 
-# FOR Limited UNITID's
+# FOR Limited unitid's
 
-# Filter by AWLEVEL = 17 and specified UNITIDs
+# Filter by awlevel = 17 and specified unitids
 unitid_list = [
     100663, 100751, 104151, 110404, 
     134130,139658, 139755, 144005,
@@ -288,11 +288,11 @@ unitid_list = [
     234076, 231624, 236948, 240444
 ]
 
-# Filter by AWLEVEL and UNITID
-filtered_df = df_trimmed[df_trimmed['AWLEVEL'] == 17][[
-    'UNITID', 'Year', 'AWLEVEL',
+# Filter by awlevel and unitid
+filtered_df = df_trimmed[df_trimmed['awlevel'] == 17][[
+    'unitid', 'year', 'awlevel',
     'ft_tot_all_races_v', 'ft_frst_tot_all_races_v',
-    'CTOTALT', 'CTOTALM', 'CTOTALW',
+    'ctotalt', 'ctotalm', 'ctotalw',
     'ma_ft_men_all_races_v', 'ma_ft_wmen_all_races_v', 'ma_ft_tot_all_races_v',
     'dr_ft_men_all_races_v', 'dr_ft_wmen_all_races_v', 'dr_ft_tot_all_races_v',
     'ma_ft_frst_tot_all_races_v', 'dr_ft_frst_tot_all_races_v', 
@@ -311,9 +311,9 @@ filtered_df = df_trimmed[df_trimmed['AWLEVEL'] == 17][[
 
     #Racial/Ethinc breakdwon - degrees earben
         # Racial breakdown, Non-residental alien, Black,Native American/Alaskin, Asian/Pacific islander, Hispanic, White, Unknown,
-        'CRACE17_STD', 'CRACE18_STD','CRACE19_STD', 'CRACE20_STD','CRACE21_STD', 'CRACE22_STD', 'CUNKNT',
+        'crace17_std', 'crace18_std','crace19_std', 'crace20_std','crace21_std', 'crace22_std', 'cunknt',
         # Other racial breakdowns Black, Aisan, Native Hawian/Pacific islander Hispanic/Latino., White (Unknown is the same),  2 or more races, non-american students
-        'CBKAAT','CASIAT','CNHPIT', 'CHISPT', 'CWHITT', 'C2MORT', 'CNRALT', 
+        'cbkaat','casiat','cnhpit', 'chispt', 'cwhitt', 'c2mort', 'cnralt', 
     
     # Racial/Ethnic breakdowns - First-Time Enrollment
     "ft_frst_tot_black_v", "ft_frst_tot_indian_v", "ft_frst_tot_asian_v", "ft_frst_tot_pacific_v",
@@ -333,31 +333,31 @@ def bootstrap_ci(data, n_bootstrap=1000, ci=0.95):
     return (np.mean(data), res.confidence_interval.low, res.confidence_interval.high)
 
 def get_bootstrap_stats(df, value_column):
-    years = sorted(df['Year'].dropna().unique())
+    years = sorted(df['year'].dropna().unique())
     stats = []
 
     for year in years:
-        values = df[df['Year'] == year][value_column]
+        values = df[df['year'] == year][value_column]
         mean, lower, upper = bootstrap_ci(values)
-        stats.append({'Year': year, 'Mean': mean, 'Lower': lower, 'Upper': upper})
+        stats.append({'year': year, 'Mean': mean, 'Lower': lower, 'Upper': upper})
 
     return pd.DataFrame(stats)
 
 
 
-filtered_df = filtered_df[filtered_df['UNITID'].isin(unitid_list)]
+filtered_df = filtered_df[filtered_df['unitid'].isin(unitid_list)]
 
 # Create a complete DataFrame with all missing years filled
-all_years = pd.MultiIndex.from_product([unitid_list, range(2000, 2024)], names=['UNITID', 'Year']).to_frame(index=False)
-complete_df = all_years.merge(filtered_df, how='left', on=['UNITID', 'Year'])
+all_years = pd.MultiIndex.from_product([unitid_list, range(2000, 2024)], names=['unitid', 'year']).to_frame(index=False)
+complete_df = all_years.merge(filtered_df, how='left', on=['unitid', 'year'])
 
-# Fill missing AWLEVEL with 17
-complete_df['AWLEVEL'] = complete_df['AWLEVEL'].fillna(17)
+# Fill missing awlevel with 17
+complete_df['awlevel'] = complete_df['awlevel'].fillna(17)
 
 # Fill missing values with NaN
 complete_df['ft_tot_all_races_v'] = complete_df['ft_tot_all_races_v'].fillna(np.nan)
 complete_df['ft_frst_tot_all_races_v'] = complete_df['ft_frst_tot_all_races_v'].fillna(np.nan)
-complete_df['CTOTALT'] = complete_df['CTOTALT'].fillna(np.nan)
+complete_df['ctotalt'] = complete_df['ctotalt'].fillna(np.nan)
 
 # Add offset columns
 offset_columns = [
@@ -379,22 +379,22 @@ def safe_extract(arr):
 
 # Calculate offset values with safe handling
 for index, row in complete_df.iterrows():
-    year = row['Year']
-    unitid = row['UNITID']
+    year = row['year']
+    unitid = row['unitid']
 
     # Lookup values with safe extraction
-    total = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['ft_tot_all_races_v'].values)
-    total_plus_1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['ft_tot_all_races_v'].values)
+    total = safe_extract(complete_df[(complete_df['unitid'] == unitid) & (complete_df['year'] == year)]['ft_tot_all_races_v'].values)
+    total_plus_1 = safe_extract(complete_df[(complete_df['unitid'] == unitid) & (complete_df['year'] == year + 1)]['ft_tot_all_races_v'].values)
 
-    first_minus_1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year - 1)]['ft_frst_tot_all_races_v'].values)
-    first = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['ft_frst_tot_all_races_v'].values)
-    first_plus_1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['ft_frst_tot_all_races_v'].values)
+    first_minus_1 = safe_extract(complete_df[(complete_df['unitid'] == unitid) & (complete_df['year'] == year - 1)]['ft_frst_tot_all_races_v'].values)
+    first = safe_extract(complete_df[(complete_df['unitid'] == unitid) & (complete_df['year'] == year)]['ft_frst_tot_all_races_v'].values)
+    first_plus_1 = safe_extract(complete_df[(complete_df['unitid'] == unitid) & (complete_df['year'] == year + 1)]['ft_frst_tot_all_races_v'].values)
 
-    grad = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year)]['CTOTALT'].values)
-    grad_plus_1 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 1)]['CTOTALT'].values)
-    grad_plus_5 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 5)]['CTOTALT'].values)
-    grad_plus_6 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 6)]['CTOTALT'].values)
-    grad_plus_7 = safe_extract(complete_df[(complete_df['UNITID'] == unitid) & (complete_df['Year'] == year + 7)]['CTOTALT'].values)
+    grad = safe_extract(complete_df[(complete_df['unitid'] == unitid) & (complete_df['year'] == year)]['ctotalt'].values)
+    grad_plus_1 = safe_extract(complete_df[(complete_df['unitid'] == unitid) & (complete_df['year'] == year + 1)]['ctotalt'].values)
+    grad_plus_5 = safe_extract(complete_df[(complete_df['unitid'] == unitid) & (complete_df['year'] == year + 5)]['ctotalt'].values)
+    grad_plus_6 = safe_extract(complete_df[(complete_df['unitid'] == unitid) & (complete_df['year'] == year + 6)]['ctotalt'].values)
+    grad_plus_7 = safe_extract(complete_df[(complete_df['unitid'] == unitid) & (complete_df['year'] == year + 7)]['ctotalt'].values)
 
     
     # Calculate PCR and Retention values safely
@@ -430,10 +430,10 @@ output_path = '/Users/co25936/Desktop/PER/IPEDS/complete_with_offsets_and_PA_noI
 complete_df.to_excel(output_path, index=False)
 print(f'File saved at: {output_path}')
 
-# --- Aggregate PCR across UNITIDs instead of averaging ---
+# --- Aggregate PCR across unitids instead of averaging ---
 
-# Collapse the data by year (sum across UNITIDs)
-yearly_totals = complete_df.groupby("Year").agg({
+# Collapse the data by year (sum across unitids)
+yearly_totals = complete_df.groupby("year").agg({
     "first_minus_1": "sum",
     "first": "sum",
     "first_plus_1": "sum",
@@ -448,33 +448,33 @@ yearly_totals["PCR_value_total"] = (
     (yearly_totals["first_minus_1"] + yearly_totals["first"] + yearly_totals["first_plus_1"])
 )
 
-# Count unique UNITIDs per year
-unitid_counts = complete_df.groupby("Year")["UNITID"].nunique().reset_index()
-unitid_counts.columns = ["Year", "Unique_UNITIDs"]
+# Count unique unitids per year
+unitid_counts = complete_df.groupby("year")["unitid"].nunique().reset_index()
+unitid_counts.columns = ["year", "Unique_unitids"]
 
-print("\nNumber of unique UNITIDs per year:")
+print("\nNumber of unique unitids per year:")
 print(unitid_counts)
 
-# Aggregate first-years and PhD grads across UNITIDs per year
-enrollment_and_grads = complete_df.groupby("Year").agg({
+# Aggregate first-years and PhD grads across unitids per year
+enrollment_and_grads = complete_df.groupby("year").agg({
     "first": "sum",   # first-year enrollments
-    "grad": "sum"     # PhD grads (CTOTALT)
+    "grad": "sum"     # PhD grads (ctotalt)
 }).reset_index()
 
 print("\nNumber of first years per year:")
-print(enrollment_and_grads[["Year", "first"]])
+print(enrollment_and_grads[["year", "first"]])
 
 print("\nNumber of PhD grads per year:")
-print(enrollment_and_grads[["Year", "grad"]])
+print(enrollment_and_grads[["year", "grad"]])
 
 
 # --- Find institutions with PCR > 2 ---
 high_pcr_df = complete_df[complete_df["PCR_value"] > 2]
 
 if not high_pcr_df.empty:
-    print("\nUNITIDs with PCR_value > 2:")
-    for _, row in high_pcr_df[["UNITID", "Year", "PCR_value"]].sort_values(["UNITID", "Year"]).iterrows():
-        print(f"UNITID: {row['UNITID']}, Year: {int(row['Year'])}, PCR_value: {row['PCR_value']:.3f}")
+    print("\nunitids with PCR_value > 2:")
+    for _, row in high_pcr_df[["unitid", "year", "PCR_value"]].sort_values(["unitid", "year"]).iterrows():
+        print(f"unitid: {row['unitid']}, year: {int(row['year'])}, PCR_value: {row['PCR_value']:.3f}")
 else:
     print("\nNo institutions with PCR_value > 2.")
 
@@ -484,17 +484,17 @@ else:
 fig, ax = plt.subplots(figsize=(14, 6))
 
 # Restrict scatter to 2001–2016
-for unitid in complete_df["UNITID"].unique():
-    subset = complete_df[(complete_df["UNITID"] == unitid) & 
-                         (complete_df["Year"].between(2001, 2016))]
-    ax.scatter(subset["Year"], subset["PCR_value"], alpha=0.3, s=20)
+for unitid in complete_df["unitid"].unique():
+    subset = complete_df[(complete_df["unitid"] == unitid) & 
+                         (complete_df["year"].between(2001, 2016))]
+    ax.scatter(subset["year"], subset["PCR_value"], alpha=0.3, s=20)
 
 # Restrict yearly_totals to 2001–2016
-yearly_subset = yearly_totals[yearly_totals["Year"].between(2001, 2016)]
+yearly_subset = yearly_totals[yearly_totals["year"].between(2001, 2016)]
 
 # Plot the total PCR (red line)
-ax.plot(yearly_subset["Year"], yearly_subset["PCR_value_total"],
-        color="red", linewidth=2, label="Total PCR (summed across UNITIDs)")
+ax.plot(yearly_subset["year"], yearly_subset["PCR_value_total"],
+        color="red", linewidth=2, label="Total PCR (summed across unitids)")
 
 print(yearly_totals["PCR_value_total"])
 
@@ -506,7 +506,7 @@ ax.set_xticklabels(range(2001, 2017), rotation=45)
 ax.set_xlim(2001, 2016)
 
 ax.set_title("PCR Value (Unweighteted avg)", fontsize=18)
-ax.set_xlabel("Year", fontsize=16)
+ax.set_xlabel("year", fontsize=16)
 ax.set_ylabel("PCR Value", fontsize=16)
 ax.legend()
 ax.grid(True)
