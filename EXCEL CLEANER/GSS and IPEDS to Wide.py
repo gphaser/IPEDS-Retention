@@ -199,6 +199,24 @@ mask = (
 # Keep only GOOD rows
 filtered_df = df_wide_blanks[~mask].copy()
 
+
+#print the Unitid's for the excluded universities 
+output_file = "excluded_universities.txt"
+
+unique_unitids = (
+    filtered_df["unitid"]
+    .dropna()
+    .astype(int)
+    .drop_duplicates()
+)
+
+with open(output_file, "w", encoding="utf-8") as f:
+    for unitid in unique_unitids:
+        f.write(f"{unitid}\n")
+
+print(f"Saved {len(unique_unitids)} unique UnitIDs to {output_file}")
+
+
 print("Rows removed:", mask.sum())
 print("Rows remaining:", len(filtered_df))
 

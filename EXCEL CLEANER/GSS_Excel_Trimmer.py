@@ -22,7 +22,7 @@ selected_columns = [
 
     # Racial/Ethnic breakdowns - Total Enrollment
     "ft_tot_black_v", "ft_tot_indian_v", "ft_tot_asian_v", "ft_tot_pacific_v",
-    "ft_tot_white_v", "ft_tot_hisp_v", "ft_tot__multi_non_hisp_v", "ft_tot_multi_v", "ft_tot_unkown_v","ft_tot_unk_v", "ft_tot_forgn_v",
+    "ft_tot_white_v", "ft_tot_hisp_v", "ft_tot_multi_non_hisp_v", "ft_tot_multi_v", "ft_tot_unkown_v","ft_tot_unk_v", "ft_tot_forgn_v",
 
 
     # Racial/Ethnic breakdowns - First-Year Enrollment

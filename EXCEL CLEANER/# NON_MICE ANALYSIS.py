@@ -545,7 +545,152 @@ categories = {
         "first": "ft_frst_wmen_forgn_v",
         "total": "ft_wmen_forgn_v",
         "awlevel": [7, 9, 17]
-    }
+    },
+       "White Doctor": {
+        "comp": "cwhitt", 
+        "first": "dr_ft_frst_tot_white_v",
+        "total": "dr_ft_tot_white_v",
+        "awlevel": [9, 17]
+    },
+    "Asian Doctor": {
+        "comp": "casiat", 
+        "first": "dr_ft_frst_tot_asian_v",
+        "total": "dr_ft_tot_asian_v",
+        "awlevel": [9, 17]
+    },
+    "Black Doctor": {
+        "comp": "cbkaat", 
+        "first": "dr_ft_frst_tot_black_v",
+        "total": "dr_ft_tot_black_v",
+        "awlevel": [9, 17]
+    },
+    "Hispanic Doctor": {
+        "comp": "chispt", 
+        "first": "dr_ft_frst_tot_hisp_v",
+        "total": "dr_ft_tot_hisp_v",
+        "awlevel": [9, 17]
+    },
+   "Native Hawaiian /Pacific islander Doctor" : {
+        "comp": "cnhpit", 
+        "first": "dr_ft_frst_tot_pacific_v",
+        "total": "dr_ft_tot_pacific_v",
+        "awlevel": [9, 17]
+    },
+    "2 or more Doctor"  : {
+        "comp": "c2mort", 
+        "first": "dr_ft_frst_tot_multi_v",
+        "total": "dr_ft_tot_multi_v",
+        "awlevel": [9, 17]
+    },
+    "Unknown Doctor"  : {
+        "comp": "cunknt", 
+        "first": "dr_ft_frst_tot_unk_v",
+        "total": "dr_ft_tot_unk_v",
+        "awlevel": [9, 17]
+    },
+    "Foreign Doctor"  : {
+        "comp": "cnralt", 
+        "first": "dr_ft_frst_tot_forgn_v",
+        "total": "dr_ft_tot_forgn_v",
+        "awlevel": [9, 17]
+    },
+
+    "White Men Doctor": {
+        "comp": "cwhitm", 
+        "first": "dr_ft_frst_men_white_v",
+        "total": "dr_ft_men_white_v",
+        "awlevel": [9, 17]
+    },
+    "Asian Men Doctor": {
+        "comp": "casiam", 
+        "first": "dr_ft_frst_men_asian_v",
+        "total": "dr_ft_men_asian_v",
+        "awlevel": [9, 17]
+    },
+    "Black Men Doctor": {
+        "comp": "cbkaam", 
+        "first": "dr_ft_frst_men_black_v",
+        "total": "dr_ft_men_black_v",
+        "awlevel": [9, 17]
+    },
+    "Hispanic Men Doctor": {
+        "comp": "chispm", 
+        "first": "dr_ft_frst_men_hisp_v",
+        "total": "dr_ft_men_hisp_v",
+        "awlevel": [9, 17]
+    },
+   "Native Hawaiian /Pacific islander Men Doctor" : {
+        "comp": "cnhpim", 
+        "first": "dr_ft_frst_men_pacific_v",
+        "total": "dr_ft_men_pacific_v",
+        "awlevel": [9, 17]
+    },
+    "2 or more Men Doctor"  : {
+        "comp": "c2morm", 
+        "first": "dr_ft_frst_men_multi_v",
+        "total": "dr_ft_men_multi_v",
+        "awlevel": [9, 17]
+    },
+    "Unknown Men Doctor"  : {
+        "comp": "cunknm", 
+        "first": "dr_ft_frst_men_unk_v",
+        "total": "dr_ft_men_unk_v",
+        "awlevel": [9, 17]
+    },
+    "Foreign Men Doctor"  : {
+        "comp": "cnralm", 
+        "first": "dr_ft_frst_men_forgn_v",
+        "total": "dr_ft_men_forgn_v",
+        "awlevel": [9, 17]
+    },
+    "White Women Doctor": {
+        "comp": "cwhitw", 
+        "first": "dr_ft_frst_wmen_white_v",
+        "total": "dr_ft_wmen_white_v",
+        "awlevel": [9, 17]
+    },
+    "Asian Women Doctor": {
+        "comp": "casiaw", 
+        "first": "dr_ft_frst_wmen_asian_v",
+        "total": "dr_ft_wmen_asian_v",
+        "awlevel": [9, 17]
+    },
+    "Black Women Doctor": {
+        "comp": "cbkaaw", 
+        "first": "dr_ft_frst_wmen_black_v",
+        "total": "dr_ft_wmen_black_v",
+        "awlevel": [9, 17]
+    },
+    "Hispanic Women Doctor": {
+        "comp": "chispw", 
+        "first": "dr_ft_frst_wmen_hisp_v",
+        "total": "dr_ft_wmen_hisp_v",
+        "awlevel": [9, 17]
+    },
+   "Native Hawaiian /Pacific islander Women Doctor" : {
+        "comp": "cnhpiw", 
+        "first": "dr_ft_frst_wmen_pacific_v",
+        "total": "dr_ft_wmen_pacific_v",
+        "awlevel": [9, 17]
+    },
+    "2 or more Women Doctor"  : {
+        "comp": "c2morw", 
+        "first": "dr_ft_frst_wmen_multi_v",
+        "total": "dr_ft_wmen_multi_v",
+        "awlevel": [9, 17]
+    },
+    "Unknown Women Doctor"  : {
+        "comp": "cunknw", 
+        "first": "dr_ft_frst_wmen_unk_v",
+        "total": "dr_ft_wmen_unk_v",
+        "awlevel": [9, 17]
+    },
+    "Foreign Women Doctor"  : {
+        "comp": "cnralw", 
+        "first": "dr_ft_frst_wmen_forgn_v",
+        "total": "dr_ft_wmen_forgn_v",
+        "awlevel": [9, 17]
+    },
 }
 
 # ==============================================================
@@ -835,6 +980,248 @@ for cat in results_df["Category"].unique():
     plt.tight_layout()
     plt.savefig(output_dir / f"Retention_{safe_cat}.png", dpi=300)
     plt.close()
+
+# Also want unified y-axis and sex-groups so 
+total_groups = [
+    "Total",
+    "White",
+    "Asian",
+    "Black",
+    "Hispanic",
+    "Native Hawaiian /Pacific islander",
+    "2 or more",
+    "Unknown",
+    "Foreign"
+]
+
+men_groups = [
+    "Men",
+    "White Men",
+    "Asian Men",
+    "Black Men",
+    "Hispanic Men",
+    "Native Hawaiian /Pacific islander Men",
+    "2 or more Men",
+    "Unknown Men",
+    "Foreign Men"
+]
+
+women_groups = [
+    "Women",
+    "White Women",
+    "Asian Women",
+    "Black Women",
+    "Hispanic Women",
+    "Native Hawaiian /Pacific islander Women",
+    "2 or more Women",
+    "Unknown Women",
+    "Foreign Women"
+]
+
+doctor_groups = [
+    "Doctor",
+    "White Doctor",
+    "Asian Doctor",
+    "Black Doctor",
+    "Hispanic Doctor",
+    "Native Hawaiian /Pacific islander Doctor",
+    "2 or more Doctor",
+    "Unknown Doctor",
+    "Foreign Doctor"
+]
+men_doctor_groups = [
+    "Men Doctor",
+    "White Men Doctor",
+    "Asian Men Doctor",
+    "Black Men Doctor",
+    "Hispanic Men Doctor",
+    "Native Hawaiian /Pacific islander Men Doctor",
+    "2 or more Men Doctor",
+    "Unknown Men Doctor",
+    "Foreign Men Doctor"
+]
+
+women_doctor_groups = [
+    "Women Doctor",
+    "White Women Doctor",
+    "Asian Women Doctor",
+    "Black Women Doctor",
+    "Hispanic Women Doctor",
+    "Native Hawaiian /Pacific islander Women Doctor",
+    "2 or more Women Doctor",
+    "Unknown Women Doctor",
+    "Foreign Women Doctor"
+]
+
+pcr_min = results_df["PCR"].dropna().min() - 0.1
+rr_min = results_df["Retention"].dropna().min() - 0.1
+
+plot_groups = (
+    total_groups +
+    men_groups +
+    women_groups
+)
+
+plot_df = results_df[
+    results_df["Category"].isin(plot_groups)
+]
+
+pcr_max = plot_df["PCR"].dropna().max()
+rr_max = plot_df["Retention"].dropna().max()
+
+
+doctor_plot_groups = (
+    doctor_groups +
+    men_doctor_groups +
+    women_doctor_groups
+)
+
+doctor_df = results_df[
+    results_df["Category"].isin(doctor_plot_groups)
+]
+
+doctor_rr_min = max(
+    0,
+    doctor_df["Retention"].dropna().min() - 0.1
+)
+
+doctor_rr_max = (
+    doctor_df["Retention"].dropna().max() + 0.1
+)
+
+
+
+# this is a function that will make the graphs that we call below
+def make_graph(groups, value_col, title, filename, ymin, ymax):
+
+    plt.figure(figsize=(12,8))
+
+    for group in groups:
+
+        temp = (
+            results_df[
+                results_df["Category"] == group
+            ]
+            .sort_values("Year")
+        )
+
+        if temp.empty:
+            continue
+
+        plt.plot(
+            temp["Year"],
+            temp[value_col],
+            marker="o",
+            label=group
+        )
+
+    plt.title(title)
+    plt.xlabel("Year")
+    plt.ylabel(value_col)
+
+    # SAME y-axis for every graph
+    plt.ylim(ymin, ymax)
+
+    plt.grid(True)
+
+    plt.legend(
+        bbox_to_anchor=(1.05, 1),
+        loc="upper left"
+    )
+
+    plt.tight_layout()
+
+    plt.savefig(
+        output_dir / filename,
+        dpi=300,
+        bbox_inches="tight"
+    )
+
+    plt.close()
+
+# PCR graphs all use same PCR scale
+make_graph(
+    total_groups,
+    "PCR",
+    "PCR - All Students",
+    "PCR_Total_All.png",
+    pcr_min,
+    pcr_max
+)
+
+make_graph(
+    men_groups,
+    "PCR",
+    "PCR - Men",
+    "PCR_Men_All.png",
+    pcr_min,
+    pcr_max
+)
+
+make_graph(
+    women_groups,
+    "PCR",
+    "PCR - Women",
+    "PCR_Women_All.png",
+    pcr_min,
+    pcr_max
+)
+
+# RR graphs all use same RR scale
+make_graph(
+    total_groups,
+    "Retention Rate",
+    "RR - All Students",
+    "RR_Total_All.png",
+    rr_min,
+    rr_max
+)
+
+make_graph(
+    men_groups,
+    "Retention Rate",
+    "RR - Men",
+    "RR_Men_All.png",
+    rr_min,
+    rr_max
+)
+
+make_graph(
+    women_groups,
+    "Retention Rate",
+    "RR - Women",
+    "RR_Women_All.png",
+    rr_min,
+    rr_max
+)
+
+make_graph(
+    doctor_groups,
+    "Retention Rate",
+    "RR - Doctoral Students",
+    "RR_Doctor_All.png",
+    doctor_rr_min,
+    doctor_rr_max
+)
+
+make_graph(
+    men_doctor_groups,
+    "Retention Rate",
+    "RR - Men Doctoral Students",
+    "RR_Doctor_Men.png",
+    doctor_rr_min,
+    doctor_rr_max
+)
+
+make_graph(
+    women_doctor_groups,
+    "Retention Rate",
+    "RR - Women Doctoral Students",
+    "RR_Doctor_Women.png",
+    doctor_rr_min,
+    doctor_rr_max
+)
+
 # ==============================================================
 # STEP 8: Optional Summary Tables
 # ==============================================================

@@ -115,6 +115,8 @@ df_wide_blanks['MISSING_COUNT'] = df_wide_blanks[cols_to_check].isnull().sum(axi
 # Filter rows based on missing_count
 filtered_df = df_wide_blanks[df_wide_blanks['MISSING_COUNT'] > 10]
 
+
+
 print(df_wide_blanks)
 print(filtered_df)
 

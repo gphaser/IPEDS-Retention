@@ -13,7 +13,7 @@ column_pairs = [
     ("ft_frst_wmen_unk_v","ft_frst_wmen_unknown_v"),
     ("ft_men_unk_v","ft_men_unknown_v"),
     ("ft_wmen_unkn_v", "ft_wmen_unknown_v"),
-    ("ft_tot__multi_v", "ft_tot__multi_non_hisp_v", ),
+    ("ft_tot_multi_v", "ft_tot_multi_non_hisp_v", ),
     ("ft_frst_tot_multi_v","ft_frst_tot_multi_non_hisp_v"),
     ("ft_frst_men_multi_v", "ft_frst_men_multi_non_hisp_v"),
     ("ft_frst_wmen_multi_v", "ft_frst_wmen_multi_non_hisp_v"),
