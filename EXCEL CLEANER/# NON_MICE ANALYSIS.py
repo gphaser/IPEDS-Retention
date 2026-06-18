@@ -691,7 +691,162 @@ categories = {
         "total": "dr_ft_wmen_forgn_v",
         "awlevel": [9, 17]
     },
+
+    'Masters': {
+        "comp": "ctotalt", 
+        "first": "ma_ft_frst_tot_all_races_v",
+        "total": "ma_ft_tot_all_races_v",
+        "awlevel": [7]
+    },
+    "White Masters": {
+        "comp": "cwhitt", 
+        "first": "ma_ft_frst_tot_white_v",
+        "total": "ma_ft_tot_white_v",
+        "awlevel": [7]
+    },
+    "Asian Masters": {
+        "comp": "casiat", 
+        "first": "ma_ft_frst_tot_asian_v",
+        "total": "ma_ft_tot_asian_v",
+        "awlevel": [7]
+    },
+    "Black Masters": {
+        "comp": "cbkaat", 
+        "first": "ma_ft_frst_tot_black_v",
+        "total": "ma_ft_tot_black_v",
+        "awlevel": [7]
+    },
+    "Hispanic Masters": {
+        "comp": "chispt", 
+        "first": "ma_ft_frst_tot_hisp_v",
+        "total": "ma_ft_tot_hisp_v",
+        "awlevel": [7]
+    },
+   "Native Hawaiian /Pacific islander Masters" : {
+        "comp": "cnhpit", 
+        "first": "ma_ft_frst_tot_pacific_v",
+        "total": "ma_ft_tot_pacific_v",
+        "awlevel": [7]
+    },
+    "2 or more Masters"  : {
+        "comp": "c2mort", 
+        "first": "ma_ft_frst_tot_multi_v",
+        "total": "ma_ft_tot_multi_v",
+        "awlevel": [7]
+    },
+    "Unknown Masters"  : {
+        "comp": "cunknt", 
+        "first": "ma_ft_frst_tot_unk_v",
+        "total": "ma_ft_tot_unk_v",
+        "awlevel": [7]
+    },
+    "Foreign Masters"  : {
+        "comp": "cnralt", 
+        "first": "ma_ft_frst_tot_forgn_v",
+        "total": "ma_ft_tot_forgn_v",
+        "awlevel": [7]
+    },
+
+    "White Men Masters": {
+        "comp": "cwhitm", 
+        "first": "ma_ft_frst_men_white_v",
+        "total": "ma_ft_men_white_v",
+        "awlevel": [7]
+    },
+    "Asian Men Masters": {
+        "comp": "casiam", 
+        "first": "ma_ft_frst_men_asian_v",
+        "total": "ma_ft_men_asian_v",
+        "awlevel": [7]
+    },
+    "Black Men Masters": {
+        "comp": "cbkaam", 
+        "first": "ma_ft_frst_men_black_v",
+        "total": "ma_ft_men_black_v",
+        "awlevel": [7]
+    },
+    "Hispanic Men Masters": {
+        "comp": "chispm", 
+        "first": "ma_ft_frst_men_hisp_v",
+        "total": "ma_ft_men_hisp_v",
+        "awlevel": [7]
+    },
+
+   "Native Hawaiian /Pacific islander Men Masters" : {
+        "comp": "cnhpim", 
+        "first": "ma_ft_frst_men_pacific_v",
+        "total": "ma_ft_men_pacific_v",
+        "awlevel": [7]
+    },
+    "2 or more Men Masters"  : {
+        "comp": "c2morm", 
+        "first": "ma_ft_frst_men_multi_v",
+        "total": "ma_ft_men_multi_v",
+        "awlevel": [7]
+    },
+    "Unknown Men Masters"  : {
+        "comp": "cunknm", 
+        "first": "ma_ft_frst_men_unk_v",
+        "total": "ma_ft_men_unk_v",
+        "awlevel": [7]
+    },
+    "Foreign Men Masters"  : {
+        "comp": "cnralm", 
+        "first": "ma_ft_frst_men_forgn_v",
+        "total": "ma_ft_men_forgn_v",
+        "awlevel": [7]
+    },
+    "White Women Masters": {
+        "comp": "cwhitw", 
+        "first": "ma_ft_frst_wmen_white_v",
+        "total": "ma_ft_wmen_white_v",
+        "awlevel": [7]
+    },
+    "Asian Women Masters": {
+        "comp": "casiaw", 
+        "first": "ma_ft_frst_wmen_asian_v",
+        "total": "ma_ft_wmen_asian_v",
+        "awlevel": [7]
+    },
+    "Black Women Masters": {
+        "comp": "cbkaaw", 
+        "first": "ma_ft_frst_wmen_black_v",
+        "total": "ma_ft_wmen_black_v",
+        "awlevel": [7]
+    },
+    "Hispanic Women Masters": {
+        "comp": "chispw", 
+        "first": "ma_ft_frst_wmen_hisp_v",
+        "total": "ma_ft_wmen_hisp_v",
+        "awlevel": [7]
+    },
+   "Native Hawaiian /Pacific islander Women Masters" : {
+        "comp": "cnhpiw", 
+        "first": "ma_ft_frst_wmen_pacific_v",
+        "total": "ma_ft_wmen_pacific_v",
+        "awlevel": [7]
+    },
+    "2 or more Women Masters"  : {
+        "comp": "c2morw", 
+        "first": "ma_ft_frst_wmen_multi_v",
+        "total": "ma_ft_wmen_multi_v",
+        "awlevel": [7]
+    },
+    "Unknown Women Masters"  : {
+        "comp": "cunknw", 
+        "first": "ma_ft_frst_wmen_unk_v",
+        "total": "ma_ft_wmen_unk_v",
+        "awlevel": [7]
+    },
+    "Foreign Women Masters"  : {
+        "comp": "cnralw", 
+        "first": "ma_ft_frst_wmen_forgn_v",
+        "total": "ma_ft_wmen_forgn_v",
+        "awlevel": [7]
+    },
 }
+
+
 
 # ==============================================================
 # STEP 3: Clean Data
@@ -904,7 +1059,9 @@ for category_name, config in categories.items():
             "PCR_Numerator_Comp": comp_sum,
             "PCR_Denominator_First": first_sum,
             "Retention_Numerator": numerator,
-            "Retention_Denominator": denominator
+            "Retention_Denominator": denominator,
+            "Comp_Total": temp[comp_current_col].sum() if comp_current_col in temp.columns else np.nan,
+            "First_Total": temp[first_current_col].sum() if first_current_col in temp.columns else np.nan
         })
 
 
@@ -913,6 +1070,9 @@ for category_name, config in categories.items():
 # ==============================================================
 
 results_df = pd.DataFrame(results)
+
+# TEMP DEBUG
+print(results_df[results_df["Category"] == "Masters"].to_string())
 
 # Optional formatting
 results_df = results_df.sort_values(["Category", "Year"])
@@ -1053,6 +1213,41 @@ women_doctor_groups = [
     "Foreign Women Doctor"
 ]
 
+master_groups = [
+    "Masters",
+    "White Masters",
+    "Asian Masters",
+    "Black Masters",
+    "Hispanic Masters",
+    "Native Hawaiian /Pacific islander Masters",
+    "2 or more Masters",
+    "Unknown Masters",
+    "Foreign Masters"
+]
+men_master_groups = [
+    "Men Masters",
+    "White Men Masters",
+    "Asian Men Masters",
+    "Black Men Masters",
+    "Hispanic Men Masters",
+    "Native Hawaiian /Pacific islander Men Masters",
+    "2 or more Men Masters",
+    "Unknown Men Masters",
+    "Foreign Men Masters"
+]
+
+women_master_groups = [
+    "Women Masters",
+    "White Women Masters",
+    "Asian Women Masters",
+    "Black Women Masters",
+    "Hispanic Women Masters",
+    "Native Hawaiian /Pacific islander Women Masters",
+    "2 or more Women Masters",
+    "Unknown Women Masters",
+    "Foreign Women Masters"
+]
+
 pcr_min = results_df["PCR"].dropna().min() - 0.1
 rr_min = results_df["Retention"].dropna().min() - 0.1
 
@@ -1089,6 +1284,24 @@ doctor_rr_max = (
     doctor_df["Retention"].dropna().max() + 0.1
 )
 
+master_plot_groups = (
+    master_groups +
+    men_master_groups +
+    women_master_groups
+)
+
+master_df = results_df[
+    results_df["Category"].isin(master_plot_groups)
+]
+
+master_rr_min = max(
+    0,
+    master_df["Retention"].dropna().min() - 0.1
+)
+
+master_rr_max = (
+    master_df["Retention"].dropna().max() + 0.1
+)
 
 
 # this is a function that will make the graphs that we call below
@@ -1170,7 +1383,7 @@ make_graph(
 # RR graphs all use same RR scale
 make_graph(
     total_groups,
-    "Retention Rate",
+    "Retention",
     "RR - All Students",
     "RR_Total_All.png",
     rr_min,
@@ -1179,7 +1392,7 @@ make_graph(
 
 make_graph(
     men_groups,
-    "Retention Rate",
+    "Retention",
     "RR - Men",
     "RR_Men_All.png",
     rr_min,
@@ -1188,7 +1401,7 @@ make_graph(
 
 make_graph(
     women_groups,
-    "Retention Rate",
+    "Retention",
     "RR - Women",
     "RR_Women_All.png",
     rr_min,
@@ -1197,7 +1410,7 @@ make_graph(
 
 make_graph(
     doctor_groups,
-    "Retention Rate",
+    "Retention",
     "RR - Doctoral Students",
     "RR_Doctor_All.png",
     doctor_rr_min,
@@ -1206,7 +1419,7 @@ make_graph(
 
 make_graph(
     men_doctor_groups,
-    "Retention Rate",
+    "Retention",
     "RR - Men Doctoral Students",
     "RR_Doctor_Men.png",
     doctor_rr_min,
@@ -1215,15 +1428,42 @@ make_graph(
 
 make_graph(
     women_doctor_groups,
-    "Retention Rate",
+    "Retention",
     "RR - Women Doctoral Students",
     "RR_Doctor_Women.png",
     doctor_rr_min,
     doctor_rr_max
 )
 
+make_graph(
+    master_groups,
+    "Retention",
+    "RR - Masters Students",
+    "RR_Master_All.png",
+    master_rr_min,
+    master_rr_max
+)
+
+make_graph(
+    men_master_groups,
+    "Retention",
+    "RR - Men Masters Students",
+    "RR_Master_Men.png",
+    master_rr_min,
+    master_rr_max
+)
+
+make_graph(
+    women_master_groups,
+    "Retention",
+    "RR - Women Masters Students",
+    "RR_Master_Women.png",
+    master_rr_min,
+    master_rr_max
+)
+
 # ==============================================================
-# STEP 8: Optional Summary Tables
+# STEP 8: Summary Tables
 # ==============================================================
 
 # Wide-format PCR table
@@ -1240,21 +1480,74 @@ retention_table = results_df.pivot(
     values="Retention"
 )
 
-# Save summary tables
+# Wide-format totals tables
+comp_total_table = results_df.pivot(
+    index="Year",
+    columns="Category",
+    values="Comp_Total"
+)
+
+first_total_table = results_df.pivot(
+    index="Year",
+    columns="Category",
+    values="First_Total"
+)
+
+# ==============================================================
+# PhD vs Masters First-Time Student Fraction
+# ==============================================================
+
+def strip_level_suffix(cat_name, suffix):
+    if cat_name == suffix.strip():
+        return "Total"
+    if cat_name.endswith(" " + suffix):
+        return cat_name[: -(len(suffix) + 1)]
+    return None
+
+doctor_rows = results_df[
+    results_df["Category"].str.endswith("Doctor") | (results_df["Category"] == "Doctor")
+].copy()
+doctor_rows["Group"] = doctor_rows["Category"].apply(lambda c: strip_level_suffix(c, "Doctor"))
+
+masters_rows = results_df[
+    results_df["Category"].str.endswith("Masters") | (results_df["Category"] == "Masters")
+].copy()
+masters_rows["Group"] = masters_rows["Category"].apply(lambda c: strip_level_suffix(c, "Masters"))
+
+phd_vs_masters = pd.merge(
+    doctor_rows[["Group", "Year", "First_Total"]].rename(columns={"First_Total": "PhD_First"}),
+    masters_rows[["Group", "Year", "First_Total"]].rename(columns={"First_Total": "Masters_First"}),
+    on=["Group", "Year"],
+    how="outer"
+)
+
+phd_vs_masters["PhD_Fraction"] = phd_vs_masters["PhD_First"] / (
+    phd_vs_masters["PhD_First"] + phd_vs_masters["Masters_First"]
+)
+
+phd_vs_masters = phd_vs_masters.sort_values(["Group", "Year"])
+
+# ==============================================================
+# Save Everything
+# ==============================================================
+
 summary_output = Path(output_dir) / "PCR_Retention_Summary.xlsx"
 
 with pd.ExcelWriter(summary_output, engine="openpyxl") as writer:
     results_df.to_excel(writer, sheet_name="Long_Format", index=False)
     pcr_table.to_excel(writer, sheet_name="PCR_Wide")
     retention_table.to_excel(writer, sheet_name="Retention_Wide")
+    comp_total_table.to_excel(writer, sheet_name="Comp_Total_Wide")
+    first_total_table.to_excel(writer, sheet_name="First_Total_Wide")
+    phd_vs_masters.to_excel(writer, sheet_name="PhD_vs_Masters_Frac", index=False)
 
 print(f"Summary workbook saved to: {summary_output}")
-
 
 ## Notes
 
 # The script automatically skips categories whose columns do not exist in the dataset.
 # Missing numeric values are converted to 0.
 # Award level filtering is handled separately for each category.
+# NEED TO INCLUDE Native american values ma_ft_tot_indian_v_* (TRY TO FIGURE OUT WHY EXCLUDEDS)
 
 
