@@ -1,4 +1,3 @@
-# OK Code working but the numbers in the results need to be checked random check on 2mort 2017 true, hispanic women 2 true
 # NON_MICE ANALYSIS
 # Goal use the file "/Users/co25936/Desktop/PER/IPEDS/GSS_IPEDS_COMBINED_WIDE_trimmed.xlsx"
 # to preform the calculations for PCR and RR 
@@ -876,55 +875,7 @@ missing_base = [c for c in required_base_cols if c not in df.columns]
 if missing_base:
     raise ValueError(f"Missing required columns: {missing_base}")
 
-# ==============================================================
-# STEP 5: PCR + Retention Calculations
-# ==============================================================
 
-results = []
-
-# Detect all available years from column suffixes
-# Example column: ft_tot_all_races_v_2013
-available_years = sorted({
-    int(col.split("_")[-1])
-    for col in df.columns
-    if col.split("_")[-1].isdigit()
-})
-
-print(f"Detected years: {available_years}")
-
-for category_name, config in categories.items():
-
-    comp_base = config["comp"]
-    first_base = config["first"]
-    total_base = config["total"]
-    allowed_awlevels = config["awlevel"]
-
-    # Filter by award levels
-    temp = df[df["awlevel"].isin(allowed_awlevels)].copy()
-
-    for yr in available_years:
-
-        # ======================================================
-        # Build Dynamic Column Names
-        # ======================================================
-
-        comp_cols = [
-            f"{comp_base}_{yr + 5}",
-            f"{comp_base}_{yr + 6}",
-            f"{comp_base}_{yr + 7}"
-        ]
-
-        first_cols = [
-            f"{first_base}_{yr - 1}",
-            f"{first_base}_{yr}",
-            f"{first_base}_{yr + 1}"
-        ]
-
-        total_current_col = f"{total_base}_{yr}"
-        total_prev_col = f"{total_base}_{yr - 1}"
-
-        comp_current_col = f"{comp_base}_{yr}"
-        first_current_col = f"{first_base}_{yr}"
         
 # ==============================================================
 # STEP 5: PCR + Retention Calculations
@@ -1061,7 +1012,8 @@ for category_name, config in categories.items():
             "Retention_Numerator": numerator,
             "Retention_Denominator": denominator,
             "Comp_Total": temp[comp_current_col].sum() if comp_current_col in temp.columns else np.nan,
-            "First_Total": temp[first_current_col].sum() if first_current_col in temp.columns else np.nan
+            "First_Total": temp[first_current_col].sum() if first_current_col in temp.columns else np.nan,
+            "Total_Current": temp[total_current_col].sum() if total_current_col in temp.columns else np.nan
         })
 
 
@@ -1304,7 +1256,95 @@ master_rr_max = (
 )
 
 
-# this is a function that will make the graphs that we call below
+# this is a function that will make the graphs that we call below with LOG scale dots for pop size
+
+def make_graph(groups, value_col, title, filename, ymin, ymax, size_col="Total_Current"):
+
+    plt.figure(figsize=(12,8))
+
+    # First pass: figure out global min/max of the size column across the groups being plotted,
+    # so marker scaling is consistent across this graph's group.
+    all_sizes = []
+    for group in groups:
+        temp = results_df[results_df["Category"] == group]
+        if not temp.empty and size_col in temp.columns:
+            all_sizes.extend(temp[size_col].dropna().tolist())
+
+    if all_sizes:
+        log_sizes_global = np.log(np.array(all_sizes) + 1)  # +1 avoids log(0)
+        size_log_min = log_sizes_global.min()
+        size_log_max = log_sizes_global.max()
+    else:
+        size_log_min, size_log_max = 0, 1
+
+    # tweak these to control how small/large the dots get (start 30/400)
+    MIN_MARKER_SIZE = 10
+    MAX_MARKER_SIZE = 500
+
+    for group in groups:
+
+        temp = (
+            results_df[
+                results_df["Category"] == group
+            ]
+            .sort_values("Year")
+        )
+
+        if temp.empty:
+            continue
+
+        # draw the connecting line without markers
+        line, = plt.plot(
+            temp["Year"],
+            temp[value_col],
+            marker=None,
+            label=group
+        )
+
+        # compute log-scaled marker sizes for this group's points
+        if size_col in temp.columns:
+            log_sizes = np.log(temp[size_col].fillna(0) + 1)
+            if size_log_max > size_log_min:
+                norm = (log_sizes - size_log_min) / (size_log_max - size_log_min)
+            else:
+                norm = np.zeros(len(log_sizes))
+            marker_sizes = MIN_MARKER_SIZE + norm * (MAX_MARKER_SIZE - MIN_MARKER_SIZE)
+        else:
+            marker_sizes = MIN_MARKER_SIZE
+
+        # overlay scatter points, sized logarithmically, same color as the line
+        plt.scatter(
+            temp["Year"],
+            temp[value_col],
+            s=marker_sizes,
+            color=line.get_color(),
+            zorder=3
+        )
+
+    plt.title(title)
+    plt.xlabel("Year")
+    plt.ylabel(value_col)
+
+    plt.ylim(ymin, ymax)
+
+    plt.grid(True)
+
+    plt.legend(
+        bbox_to_anchor=(1.05, 1),
+        loc="upper left"
+    )
+
+    plt.tight_layout()
+
+    plt.savefig(
+        output_dir / filename,
+        dpi=300,
+        bbox_inches="tight"
+    )
+
+    plt.close()
+
+''' Old version that worked but we want to add LOG-scale points
 def make_graph(groups, value_col, title, filename, ymin, ymax):
 
     plt.figure(figsize=(12,8))
@@ -1351,6 +1391,7 @@ def make_graph(groups, value_col, title, filename, ymin, ymax):
     )
 
     plt.close()
+'''
 
 # PCR graphs all use same PCR scale
 make_graph(
