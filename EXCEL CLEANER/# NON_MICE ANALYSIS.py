@@ -751,7 +751,7 @@ plt.rcParams.update({
 })
  
 # distinct marker shape per group (cycled in plotting order), in addition to color
-MARKERS = ["o", "s", "^", "D", "v", "P", "X", "*", "h", "8", "<", ">"]
+# MARKERS = ["o", "s", "^", "D", "v", "P", "X", "*", "h", "8", "<", ">"]
  
 def clean_filename(name):
     return re.sub(r'[^\w\-_. ]', '_', name)
@@ -899,7 +899,7 @@ def make_graph(groups, value_col, title, filepath, ymin, ymax, size_col="Total_C
             continue
  
         plotted_any = True
-        marker = MARKERS[i % len(MARKERS)]
+        # marker = MARKERS[i % len(MARKERS)]
  
         # draw the connecting line with a small fixed-size marker so the
         # legend shows each group's shape; the real log-scaled markers are
@@ -909,7 +909,8 @@ def make_graph(groups, value_col, title, filepath, ymin, ymax, size_col="Total_C
             temp[value_col],
             linestyle="-",
             linewidth=1.8,
-            marker=marker,
+            marker = 'o',
+            #marker=marker,
             markersize=8,
             markeredgecolor="black",
             markeredgewidth=0.6,
@@ -933,7 +934,8 @@ def make_graph(groups, value_col, title, filepath, ymin, ymax, size_col="Total_C
             temp["Year"],
             temp[value_col],
             s=marker_sizes,
-            marker=marker,
+            marker = 'o', 
+            #marker=marker,
             color=line.get_color(),
             edgecolor="black",
             linewidth=0.6,
